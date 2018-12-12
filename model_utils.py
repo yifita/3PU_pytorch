@@ -100,8 +100,8 @@ class GatherFunction(torch.autograd.Function):
         torch.Tensor
             (B, C, npoint) tensor
         """
-        assert features.is_contiguous()
-        assert idx.is_contiguous()
+        features = features.contiguous()
+        idx = idx.contiguous()
 
         B, npoint = idx.size()
         _, C, N = features.size()
@@ -111,18 +111,19 @@ class GatherFunction(torch.autograd.Function):
             B, C, N, npoint, features, idx, output
         )
 
-        ctx.save_for_backwards = (idx, C, N)
-
+        ctx.save_for_backward(idx)
+        ctx.C = C
+        ctx.N = N
         return output
 
     @staticmethod
     def backward(ctx, grad_out):
-        idx, C, N = ctx.saved_variables
+        idx, = ctx.saved_tensors
         B, npoint = idx.size()
 
-        grad_features = torch.zeros(B, C, N, dtype=grad_out.dtype, device=grad_out.device)
+        grad_features = torch.zeros(B, ctx.C, ctx.N, dtype=grad_out.dtype, device=grad_out.device)
         grad_features = sampling.gather_backward(
-            B, C, N, npoint, grad_out.contiguous(), idx, grad_features
+            B, ctx.C, ctx.N, npoint, grad_out.contiguous(), idx, grad_features
         )
 
         return grad_features, None
@@ -152,8 +153,8 @@ class FurthestPointSampling(torch.autograd.Function):
         """
         B, N, _ = xyz.size()
 
-        idx = torch.empty(B, npoint, dtype=torch.int32, device=xyz.device)
-        temp = torch.full(B, N, 1e10, dtype=torch.float32, device=xyz.device)
+        idx = torch.empty([B, npoint], dtype=torch.int32, device=xyz.device)
+        temp = torch.full([B, N], 1e10, dtype=torch.float32, device=xyz.device)
 
         sampling.furthest_sampling(
             B, N, npoint, xyz, temp, idx
@@ -197,14 +198,14 @@ if __name__ == '__main__':
     pc = pc[:, :3]
     print("{} input points".format(pc.shape[0]))
     save_ply(pc, "./input.ply", colors=None, normals=None)
-    pc = torch.from_numpy(pc).to(cuda0).unsqueeze(0)
+    pc = torch.from_numpy(pc).requires_grad_().to(cuda0).unsqueeze(0)
     pc = pc.transpose(2, 1)
 
     # test furthest point
     furthest_point = FurthestPoint()
     idx, sampled_pc = furthest_point(pc, 1250)
     output = sampled_pc.transpose(2, 1).cpu().squeeze()
-    save_ply(output, "./output.ply", colors=None, normals=None)
+    save_ply(output.detach(), "./output.ply", colors=None, normals=None)
 
     # test KNN
     knn = KNN()
@@ -212,6 +213,11 @@ if __name__ == '__main__':
     labels = torch.arange(0, knn_points.size(2)).unsqueeze_(0).unsqueeze_(0).unsqueeze_(-1)  # 1, 1, M, 1
     labels = labels.expand(knn_points.size(0), -1, -1, knn_points.size(3))  # B, 1, M, K
     # B, C, P
-    labels = torch.cat(torch.unbind(labels, dim=-1), dim=-1).squeeze().cpu().numpy()
-    knn_points = torch.cat(torch.unbind(knn_points, dim=-1), dim=-1).transpose(2, 1).squeeze(0).cpu().numpy()
+    labels = torch.cat(torch.unbind(labels, dim=-1), dim=-1).squeeze().detach().cpu().numpy()
+    knn_points = torch.cat(torch.unbind(knn_points, dim=-1), dim=-1).transpose(2, 1).squeeze(0).detach().cpu().numpy()
     save_ply_property(knn_points, labels, "./knn_output.ply", cmap_name='jet')
+
+    from torch.autograd import gradcheck
+
+    test = gradcheck(gather_points, [pc.to(dtype=torch.float64), idx], eps=1e-6, atol=1e-4)
+    print(test)

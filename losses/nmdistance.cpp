@@ -2,7 +2,6 @@
 #include <vector>
 
 // CUDA forward declarations
-
 std::vector<at::Tensor> NmDistanceKernelLauncher(
     int b,int n, at::Tensor xyz,
     int m, at::Tensor xyz2, at::Tensor result, at::Tensor result_i, at::Tensor result2, at::Tensor result2_i);

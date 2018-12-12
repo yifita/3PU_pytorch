@@ -13,13 +13,13 @@ class NmDistanceFunction(torch.autograd.Function):
         result2 = torch.empty(B, M, dtype=xyz2.dtype, device=xyz2.device)
         result2_i = torch.empty(B, M, dtype=torch.int32, device=xyz2.device)
         result, result_i, result2, result2_i = losses.nmdistance_forward(B, N, xyz1, M, xyz2, result, result_i, result2, result2_i)
-        ctx.save_for_backwards = (xyz1, xyz2, result_i, result2_i)
+        ctx.save_for_backward(xyz1, xyz2, result_i, result2_i)
         return result, result_i, result2, result2_i
 
     @staticmethod
-    def backward(ctx, d_dist1, None, d_dist2, None):
-        B, N, _ = d_dist1.size()
-        B, M, _ = d_dist2.size()
+    def backward(ctx, d_dist1, d_i1, d_dist2, d_i2):
+        B, N = d_dist1.size()
+        B, M = d_dist2.size()
         xyz1, xyz2, idx1, idx2 = ctx.saved_variables
         d_xyz1 = torch.zeros_like(xyz1)
         d_xyz2 = torch.zeros_like(xyz2)
@@ -32,14 +32,18 @@ class NmDistanceFunction(torch.autograd.Function):
         if not gradient2:
             return d_input[0], None
         else:
-            d_input
+            return d_input[0], d_input[1]
+
+
+nndistance = NmDistanceFunction.apply
 
 
 class ChamferLoss(torch.nn.Module):
-    def __init__(self, threshold):
-        super(ClassName, self).__init__()
+    def __init__(self, threshold=None, forward_weight=1.0):
+        super(ChamferLoss, self).__init__()
         # only consider distance smaller than threshold*mean(distance) (remove outlier)
         self.threshold = threshold
+        self.forward_weight = forward_weight
 
     def forward(self, pred, gt):
         assert(pred.dim() == 3 and gt.dim() == 3), \
@@ -60,15 +64,24 @@ class ChamferLoss(torch.nn.Module):
         if self.threshold is not None:
             threshold = self.threshold
             forward_threshold = torch.mean(pred2gt, dim=1, keepdim=True) * threshold
-            backward_threshold = torch.mean(dists_backward, dim=1, keepdim=True) * threshold
+            backward_threshold = torch.mean(gt2pred, dim=1, keepdim=True) * threshold
             # only care about distance within threshold (ignore strong outliers)
-            dists_forward = torch.where(dists_forward < forward_threshold, dists_forward, torch.zeros_like(dists_forward))
-            dists_backward = torch.where(dists_backward < backward_threshold, dists_backward, torch.zeros_like(dists_backward))
+            pred2gt = torch.where(pred2gt < forward_threshold, pred2gt, torch.zeros_like(pred2gt))
+            gt2pred = torch.where(gt2pred < backward_threshold, gt2pred, torch.zeros_like(gt2pred))
 
-        # dists_forward is for each element in gt, the closest distance to this element
-        dists_forward = torch.mean(dists_forward, dim=1)
-        dists_backward = torch.mean(dists_backward, dim=1)
-        CD_dist = forward_weight * dists_forward + dists_backward
+        # pred2gt is for each element in gt, the closest distance to this element
+        pred2gt = torch.mean(pred2gt, dim=1)
+        gt2pred = torch.mean(gt2pred, dim=1)
+        CD_dist = self.forward_weight * pred2gt + gt2pred
         # CD_dist_norm = CD_dist/radius
         cd_loss = torch.mean(CD_dist)
         return cd_loss
+
+
+if __name__ == '__main__':
+    pc1 = torch.randn([2, 320, 3], dtype=torch.float32, requires_grad=True).cuda()
+    pc2 = torch.randn([2, 320, 3], dtype=torch.float32, requires_grad=True).cuda()
+    chamfer = ChamferLoss()
+    from torch.autograd import gradcheck
+    test = gradcheck(nndistance, [pc1, pc2], eps=1e-6, atol=1e-4)
+    print(test)
