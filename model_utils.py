@@ -106,8 +106,7 @@ class GatherFunction(torch.autograd.Function):
         B, npoint = idx.size()
         _, C, N = features.size()
 
-        output = torch.cuda.FloatTensor(B, C, npoint)
-
+        output = torch.empty(B, C, npoint, dtype=features.dtype, device=features.device)
         output = sampling.gather_forward(
             B, C, N, npoint, features, idx, output
         )
@@ -121,7 +120,7 @@ class GatherFunction(torch.autograd.Function):
         idx, C, N = ctx.saved_variables
         B, npoint = idx.size()
 
-        grad_features = torch.cuda.FloatTensor(B, C, N).zero_()
+        grad_features = torch.zeros(B, C, N, dtype=grad_out.dtype, device=grad_out.device)
         grad_features = sampling.gather_backward(
             B, C, N, npoint, grad_out.contiguous(), idx, grad_features
         )
@@ -153,8 +152,8 @@ class FurthestPointSampling(torch.autograd.Function):
         """
         B, N, _ = xyz.size()
 
-        idx = torch.cuda.IntTensor(B, npoint)
-        temp = torch.cuda.FloatTensor(B, N).fill_(1e10)
+        idx = torch.empty(B, npoint, dtype=torch.int32, device=xyz.device)
+        temp = torch.full(B, N, 1e10, dtype=torch.float32, device=xyz.device)
 
         sampling.furthest_sampling(
             B, N, npoint, xyz, temp, idx
