@@ -1,0 +1,1927 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"fea",
+				"features_for_vis\tstatement"
+			],
+			[
+				"upda",
+				"update_dict_by_cat\tfunction"
+			],
+			[
+				"MOD",
+				"MODEL_GEN\tstatement"
+			],
+			[
+				"pc_v",
+				"patch_visualization\tfunction"
+			],
+			[
+				"knn",
+				"knn_point\tfunction"
+			],
+			[
+				"MO",
+				"MODEL_GEN\tstatement"
+			],
+			[
+				"MODEL",
+				"MODEL_GEN\tstatement"
+			],
+			[
+				"train",
+				"trainable_variables"
+			],
+			[
+				"farth",
+				"farthest_point_sample"
+			],
+			[
+				"patch",
+				"patches"
+			],
+			[
+				"savep",
+				"save_ply\tfunction"
+			],
+			[
+				"get_",
+				"get_collection"
+			],
+			[
+				"l4",
+				"l4_features_copy"
+			],
+			[
+				"pro",
+				"propagate_features\tfunction"
+			],
+			[
+				"curi",
+				"curriculumn_data_provider2\tmodule"
+			],
+			[
+				"if",
+				"if\tIf Condition"
+			],
+			[
+				"proper",
+				"property_max\tparam"
+			],
+			[
+				"er",
+				"error_file\tstatement"
+			],
+			[
+				"points",
+				"points\tparam"
+			],
+			[
+				"writer",
+				"writerow"
+			],
+			[
+				"glob",
+				"global_density\tstatement"
+			],
+			[
+				"av",
+				"avg_hd_value\tstatement"
+			],
+			[
+				"base",
+				"basename"
+			],
+			[
+				"gt",
+				"gt_names\tstatement"
+			],
+			[
+				"spli",
+				"splitext\tfunction"
+			],
+			[
+				"pred",
+				"pred_paths\tstatement"
+			],
+			[
+				"gt_",
+				"gt_pred_pairs"
+			],
+			[
+				"is",
+				"isfile\tfunction"
+			],
+			[
+				"gtp",
+				"gt_pred_pair\tparam"
+			],
+			[
+				"a",
+				"apply_async\tfunction"
+			],
+			[
+				"i",
+				"ifmain\tif __name__ == '__main__'"
+			],
+			[
+				"par",
+				"parse_args\tfunction"
+			],
+			[
+				"dist",
+				"distance\tstatement"
+			],
+			[
+				"str",
+				"stream"
+			],
+			[
+				"predp",
+				"pred_pc\tstatement"
+			],
+			[
+				"gtpa",
+				"GT_PATHS\tstatement"
+			],
+			[
+				"exp",
+				"exponential_distance\tfunction"
+			],
+			[
+				"max",
+				"maximum"
+			],
+			[
+				"reduc",
+				"reduce_sum"
+			],
+			[
+				"quer",
+				"query_normalized\tstatement"
+			],
+			[
+				"def",
+				"def\tFunction"
+			],
+			[
+				"idx",
+				"scale_idx"
+			],
+			[
+				"scal",
+				"scale_idx"
+			],
+			[
+				"stepr",
+				"STEP_RATIO\tstatement"
+			],
+			[
+				"skipf",
+				"skip_feature_xyz"
+			],
+			[
+				"restop",
+				"RESTORE_EPOCH\tstatement"
+			],
+			[
+				"NUM",
+				"num_batches"
+			],
+			[
+				"resto",
+				"RESTORE_EPOCH\tstatement"
+			],
+			[
+				"input_",
+				"input_folder"
+			],
+			[
+				"curr",
+				"curriculumn_data_provider2\tmodule"
+			],
+			[
+				"H",
+				"H5_FILE"
+			],
+			[
+				"ans",
+				"anisotropic_loss"
+			],
+			[
+				"NUMP",
+				"NUM_SHAPE_POINT\tstatement"
+			],
+			[
+				"nump",
+				"num_point\tstatement"
+			],
+			[
+				"tran",
+				"train_relpath\tstatement"
+			],
+			[
+				"train_",
+				"train_relpath\tstatement"
+			],
+			[
+				"append",
+				"append_name\tstatement"
+			],
+			[
+				"appen",
+				"append_name\tstatement"
+			],
+			[
+				"app",
+				"append_name"
+			],
+			[
+				"jitt",
+				"jitter_sigma"
+			],
+			[
+				"SHA",
+				"NUM_SHAPE_POINT"
+			],
+			[
+				"F",
+				"FLAGS\tstatement"
+			],
+			[
+				"global",
+				"global\tkeyword"
+			],
+			[
+				"step",
+				"STEP_RATIO\tstatement"
+			],
+			[
+				"DR",
+				"drop_out"
+			],
+			[
+				"JITT",
+				"JITTER\tstatement"
+			],
+			[
+				"input",
+				"input_dir\tparam"
+			],
+			[
+				"out",
+				"outputDir"
+			],
+			[
+				"inpu",
+				"inputDir"
+			],
+			[
+				"prep",
+				"pred_p\tstatement"
+			],
+			[
+				"l0",
+				"l0_xyz\tparam"
+			],
+			[
+				"jittm",
+				"jitter_max"
+			],
+			[
+				"gath",
+				"gather_nd"
+			],
+			[
+				"batch",
+				"batch_indices"
+			],
+			[
+				"expan",
+				"expand_dims"
+			],
+			[
+				"prepa",
+				"PRED_PATHS\tstatement"
+			],
+			[
+				"tfu",
+				"tf_util2\tmodule"
+			],
+			[
+				"cd",
+				"get_cd_loss\tfunction"
+			],
+			[
+				"redu",
+				"reduce_sum"
+			],
+			[
+				"drop",
+				"drop_out"
+			],
+			[
+				"jim",
+				"jitter_sigma\tparam"
+			],
+			[
+				"2D",
+				"is_2D"
+			],
+			[
+				"int",
+				"int32"
+			],
+			[
+				"jitter",
+				"jitter_sigma"
+			],
+			[
+				"jit",
+				"jitter_sigma"
+			],
+			[
+				"modlu",
+				"model_up_ratio\tstatement"
+			],
+			[
+				"print",
+				"Print"
+			],
+			[
+				"aniso",
+				"anisotropic_loss"
+			],
+			[
+				"store_",
+				"store_true"
+			],
+			[
+				"data",
+				"dataset"
+			],
+			[
+				"from",
+				"from_tensor_slices"
+			],
+			[
+				"lablp",
+				"label_pointclouds\tparam"
+			],
+			[
+				"numpo",
+				"num_points\tstatement"
+			],
+			[
+				"rec",
+				"reduce_sum"
+			],
+			[
+				"no",
+				"normals\tparam"
+			],
+			[
+				"save",
+				"save_ply\tfunction"
+			],
+			[
+				"pc",
+				"pc_util\tmodule"
+			],
+			[
+				"covar",
+				"covariance_matrix"
+			],
+			[
+				"name",
+				"name_scope"
+			],
+			[
+				"group",
+				"grouped\tstatement"
+			],
+			[
+				"cov",
+				"cov_mat\tstatement"
+			],
+			[
+				"grou",
+				"grouped\tstatement"
+			],
+			[
+				"get",
+				"getattr\tfunction"
+			],
+			[
+				"epoch",
+				"epoch\tparam"
+			],
+			[
+				"total",
+				"total_time"
+			],
+			[
+				"Ar",
+				"ArgumentParser\tclass"
+			],
+			[
+				"repl",
+				"relpath_wo_ext\tstatement"
+			],
+			[
+				"fi",
+				"filename\tparam"
+			],
+			[
+				"sam",
+				"numSample"
+			],
+			[
+				"num",
+				"numSample"
+			],
+			[
+				"skif",
+				"skip_feature_xyz"
+			],
+			[
+				"FE",
+				"SKIP_FEATURES_"
+			],
+			[
+				"model",
+				"model_up_ratio\tstatement"
+			],
+			[
+				"trab",
+				"trainable_variables"
+			],
+			[
+				"numb",
+				"num_batches\tstatement"
+			],
+			[
+				"try",
+				"try\tTry/Except"
+			],
+			[
+				"opti",
+				"optimistic_restore\tfunction"
+			],
+			[
+				"tf",
+				"tf_util2\tmodule"
+			],
+			[
+				"den",
+				"dense_n"
+			],
+			[
+				"extr",
+				"extract_patch_for_next_level\tfunction"
+			],
+			[
+				"val",
+				"value"
+			],
+			[
+				"conc",
+				"concat_feat"
+			],
+			[
+				"po",
+				"points"
+			],
+			[
+				"x",
+				"xyz"
+			],
+			[
+				"ex",
+				"expand_dims"
+			],
+			[
+				"las",
+				"last_max_ratio\tstatement"
+			],
+			[
+				"in",
+				"int32"
+			],
+			[
+				"gen",
+				"gen_grid\tfunction"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "import pytorch ",
+			"settings":
+			{
+				"buffer_size": 15,
+				"line_ending": "Unix",
+				"name": "import pytorch"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Anaconda Python Builder",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Anaconda Python Builder",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"add",
+				"Git: Add Current File"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"diff",
+				"FileDiffs: Menu"
+			],
+			[
+				"rename",
+				"File: Rename"
+			],
+			[
+				"set",
+				"Set Syntax: Python"
+			],
+			[
+				"dele",
+				"File: Delete"
+			],
+			[
+				"rena",
+				"File: Rename"
+			],
+			[
+				"delete",
+				"File: Delete"
+			],
+			[
+				"ad",
+				"Git: Add Current File"
+			],
+			[
+				"reset",
+				"Git: Reset (unstage) Current File"
+			],
+			[
+				"dif",
+				"FileDiffs: Menu"
+			],
+			[
+				"revi",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"file diff",
+				"FileDiffs: Menu"
+			],
+			[
+				"save ",
+				":w - Save"
+			],
+			[
+				"proj",
+				"Project: Edit Project"
+			],
+			[
+				"lint",
+				"Anaconda: Next lint error"
+			],
+			[
+				"commi am",
+				"Git: Amend Commit"
+			],
+			[
+				"edit ",
+				"Project: Edit"
+			],
+			[
+				"projec",
+				"Project: Edit Project"
+			],
+			[
+				"mv",
+				"File: Move"
+			],
+			[
+				"rene",
+				"Rename File"
+			],
+			[
+				"auto",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"pull",
+				"Git: Pull"
+			],
+			[
+				"c",
+				"Git: Commit"
+			],
+			[
+				"find usa",
+				"Anaconda: Find object usage"
+			],
+			[
+				"usage",
+				"Anaconda: Find object usage"
+			],
+			[
+				"docu",
+				"Anaconda: Find object usage"
+			],
+			[
+				"savea",
+				"File: Save All"
+			],
+			[
+				"setting",
+				"Preferences: Settings – Syntax Specific"
+			],
+			[
+				"enal",
+				"Anaconda: Enable linting on this file"
+			],
+			[
+				"adf",
+				"Anaconda: Disable linting on this file"
+			],
+			[
+				"fidiff",
+				"FileDiffs: Menu"
+			],
+			[
+				"com",
+				"Git: Commit"
+			],
+			[
+				"pep8",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"delet",
+				"File: Delete"
+			],
+			[
+				"format",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"next",
+				"Anaconda: Next lint error"
+			],
+			[
+				"MOVE",
+				"File: Move"
+			],
+			[
+				"move",
+				"File: Move"
+			],
+			[
+				"enable",
+				"Anaconda: Enable linting on this file"
+			],
+			[
+				"proje",
+				"Project: Edit Project"
+			],
+			[
+				"mardown p",
+				"MarkdownLivePreview: Edit Current File"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			],
+			[
+				"setting sy",
+				"Preferences: Settings – Syntax Specific"
+			],
+			[
+				"rever",
+				"GitGutter: Revert Change to Commit"
+			],
+			[
+				"revert",
+				"GitGutter: Revert Change to Commit"
+			],
+			[
+				"ADD",
+				"Git: Add Current File"
+			],
+			[
+				"DD",
+				"Git: Diff Staged Files"
+			],
+			[
+				"filed",
+				"FileDiffs: Menu"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"c++",
+				"Set Syntax: C++"
+			],
+			[
+				"renm",
+				"File: Rename"
+			],
+			[
+				"pproje",
+				"Project: Edit Project"
+			],
+			[
+				"project",
+				"Project: Edit Project"
+			],
+			[
+				"SETTING",
+				"Preferences: Settings"
+			],
+			[
+				"anaconda",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"syn pytho",
+				"Set Syntax: Python"
+			],
+			[
+				"set pytho",
+				"Set Syntax: Python"
+			],
+			[
+				"diff ",
+				"FileDiffs: Menu"
+			],
+			[
+				"build",
+				"Build With: Markdown"
+			],
+			[
+				"renam",
+				"File: Rename"
+			],
+			[
+				"pre",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"markd",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"preview",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"markdp",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"mard prev",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"color them",
+				"ColorSchemeSelector: Select Color Scheme"
+			],
+			[
+				"package list",
+				"Package Control: List Packages"
+			],
+			[
+				"theme",
+				"Material Theme: Info"
+			],
+			[
+				"list ",
+				"Package Control: List Packages"
+			],
+			[
+				"packagein",
+				"Package Control: Install Package"
+			],
+			[
+				"rn",
+				"File: Rename"
+			],
+			[
+				"mve",
+				"File: Move"
+			],
+			[
+				"branch",
+				"Git: Change Branch"
+			],
+			[
+				"change",
+				"Git: Change Branch"
+			],
+			[
+				"gitgu",
+				"GitGutter: Enable/Disable"
+			],
+			[
+				"gitgut",
+				"GitGutter: Enable/Disable"
+			],
+			[
+				"chan",
+				"Git: Change Branch"
+			],
+			[
+				"annotation",
+				"Git: Toggle Annotations"
+			],
+			[
+				"git",
+				"Git: Toggle Annotations"
+			],
+			[
+				"bran",
+				"Git: Change Branch"
+			],
+			[
+				"pu",
+				"Git: Push"
+			],
+			[
+				"ame",
+				"Git: Amend Commit"
+			],
+			[
+				"amen",
+				"Git: Amend Commit"
+			],
+			[
+				"amend",
+				"Git: Amend Commit"
+			],
+			[
+				"cola",
+				"Code Folding: Unfold All"
+			],
+			[
+				"checkou",
+				"Git: Checkout Current File"
+			],
+			[
+				"branh",
+				"Git: Change Branch"
+			],
+			[
+				"nex",
+				"Anaconda: Next lint error"
+			],
+			[
+				"r",
+				"File: Rename"
+			],
+			[
+				"select bra",
+				"BracketHighlighter: Select Bracket Content"
+			],
+			[
+				"jum",
+				"BracketHighlighter: Jump to Left Bracket"
+			],
+			[
+				"bracket sele",
+				"BracketHighlighter: Select Bracket Content"
+			],
+			[
+				"bracket",
+				"BracketHighlighter: Jump to Right Bracket"
+			],
+			[
+				"gutter",
+				"Preferences: GitGutter Settings"
+			],
+			[
+				"anaconda ",
+				"Anaconda: Disable linting on this file"
+			],
+			[
+				"disable",
+				"SublimeLinter: Disable Linter"
+			],
+			[
+				"anaconda doc",
+				"Anaconda: Find object usage"
+			],
+			[
+				"anaconda setti",
+				"Anaconda: Set Python interpreter"
+			],
+			[
+				"dete",
+				"File: Delete"
+			],
+			[
+				"del",
+				"File: Delete"
+			],
+			[
+				"filediff",
+				"FileDiffs: Menu"
+			],
+			[
+				"autom",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"run",
+				"Anaconda: Run Current Test"
+			],
+			[
+				"autofo",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"linter setting",
+				"Preferences: SublimeLinter Settings – User"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"preference pack",
+				"Preferences: Package Control Settings – User"
+			],
+			[
+				"gui",
+				"Git: Gui"
+			],
+			[
+				"select metho",
+				"Method: Select current method"
+			],
+			[
+				"md list",
+				"MarkdownEditing: Switch List Bullet Type"
+			],
+			[
+				"prev",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"docker",
+				"Set Syntax: Dockerfile"
+			],
+			[
+				"markdown list",
+				"MarkdownEditing: Switch List Bullet Type"
+			],
+			[
+				"link",
+				"MarkdownEditing: New Inline Link"
+			],
+			[
+				"previ",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"delem",
+				"Method: Delete method"
+			],
+			[
+				"method",
+				"Method: Delete method"
+			],
+			[
+				"sm",
+				"Snippet: Method"
+			],
+			[
+				"select",
+				"Method: Select current method"
+			],
+			[
+				"renma",
+				"LocalVariable: Rename"
+			],
+			[
+				"inden",
+				"IndentationNavigation: Select current indentation"
+			],
+			[
+				"rsouc",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"move ",
+				"Method: Move method down"
+			],
+			[
+				"key",
+				"Keymaps: Find a keymap for..."
+			],
+			[
+				"last",
+				"GotoLastEditEnhanced: Goto last edit"
+			]
+		],
+		"width": 560.0
+	},
+	"console":
+	{
+		"height": 414.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch"
+	],
+	"file_history":
+	[
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/tf_ops/grouping/tf_grouping.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/utils/pc_util.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/evaluation_code/CMakeLists.txt",
+		"/home/ywang/Documents/points/point-upsampling/3PU/evaluation_code/nuc.cpp",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/curriculumn_data_provider3.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/model/featEdge_dense_woInterlevel_2x8x_k32_n2/result/sketchfab/poisson_625/x16/p156_s625_s00025/evaluation.csv",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/evaluate.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/utils/tf_util2.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/command.sh",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/dense_edgeconv_interlevelplus_interleave.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/dense_edgeconv_interlevelcomp_interleave.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/dense_edgeconv_interlevel_interleave.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/model_ablation_no_intradense.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/dense_edgeconv_interleave.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/code/main_curriculum_interleave.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU/model/featEdge_dense_5interlevel_s5000_2x_k32_n2/result/featEdge_dense_5interlevel_s2500_2x_k32_n2/p312_s5000_s0025/evaluation.csv",
+		"/home/ywang/Documents/points/point-upsampling/3PU/model/featEdge_dense_5interlevel_s5000_2x_k32_n2/result/featEdge_dense_5interlevel_s2500_2x_k32_n2/p312_s5000/evaluation.csv",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_utils.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_ablation_no_expansion.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/teaser_angle",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/command.sh",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/plot_results.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/featEdge_dense_5interlevel_s5000_2x_k32_n2/result/featEdge_dense_5interlevel_s2500_2x_k32_n2/p312_s5000/evaluation.csv",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/evaluation_code/evaluation.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/evaluate.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/curriculumn_data_provider3.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/curriculumn_data_provider2.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_generator2_2new6.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/utils/tf_util2.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_atlas_dense_edgeconv.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/error_to_coloredply.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main_curriculum_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_interlevelcomp_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/evaluation_code/run_evaluate.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_interlevel_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/featEdge_dense_chair_5interlevel_2x8x_k32_n2_l0points1/result/ModelNet10/poisson_625/chair/test/x8/p156_s625_clean/evaluation.csv",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/featEdge_dense_woInterlevel_2x8x_k32_n2/result/sketchfab/poisson_625/x8/p156_s625_s00025/evaluation.csv",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_ablation_no_intradense.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_interleave_old.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/utils/pointnet_util.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_atlas.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main_PU.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/noise3D_gramme_meshlab",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_reconstruction/run_reconstruction.sh",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/utils/off2obj.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/featEdge_dense_woIterlevel_chair_2x8x_k32_n2_l0points/result/evaluation.csv",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/featEdge_dense_woIterlevel_chair_2x8x_k32_n2_l0points/result/ModelNet10/poisson_625/chair/test/x8/p156_s625_clean/evaluation.csv",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/utils/pc_util.py",
+		"/mnt/external/points/data/ModelNet10/original_mesh/chair/test/chair_0890.off",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/create_tfrecords.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_discriminator.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/new_data_provider.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/grouping/tf_grouping.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_interlevelplus_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_interlevel1_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/evaluation_code/nicolo.off",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_edgeconv_kinterlevel_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/igl-point-completion/igl/data_tools/CMakeLists.txt",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/CD/tf_nndistance.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/emd/tf_auctionmatch.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/curriculumn_data_provider4.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/data_provider.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/curriculumn_data_provider.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_reconstruction/meshlab_poisson_reconstruction.mlx",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main_curriculum_joint.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/create_h5_old.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/utils/misc.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/interpolation/interpolate.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/create_h5.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/readme.md",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/xyz_to_ply.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_semi_edgeconv_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/add_noise.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_reconstruction/invert_orientatio.mlx",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_semi_edgeconv_interlevel_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/semi_edgeconv_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main_curriculum.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/run_reconstruction.sh",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe_half_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/featEdge_interlevel_dense_3D_noisy_2x16x_k32_n2_test4/2018_10_23_20_53_59/dense_edgeconv_interlevel_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/CD/tf_nndistance_g.cu",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_semi_edgeconv_interleave_old.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/sampling/tf_sampling.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe_half_joint.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_semi_edgeconv_no_res_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/sync_shenzhen.sh",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/evaluation.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_atlas_half_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/dense_semi_edgeconv_interlevelresidual_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_sample/CMakeLists.txt",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_sample/Source.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_sample/run_pd_sampling.sh",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_sample/vcglib-1.0.1/wrap/ply/plylib.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/prepare_data/Poisson_sample/vcglib-1.0.1/Source.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/sampling/tf_sampling.cpp",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_3D_4x16x_k32_n2/training_ply/step_045000_x16_pred.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_3D_4x_p400_s1250/result/knn_p625_s625/a72-seated_jew_aligned.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_3D_4x_p400_s1250/result/knn_p1250_s1250/a72-seated_jew_aligned_input.ply",
+		"/mnt/external/points/data/SketchFab/train_mesh/angle_baby_flip_aligned.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_2x16x_k32_n2/result/knn_p50_s50_x16/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main_curriculum_interleave.py.bk",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/CD/tf_nndistance.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_4x16x_k32_n2/result/knn_p50_s50_x16/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_042500_x4_initial_gt.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_042500_x4_initial_input.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x2/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_104500_x16_pred.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_noisy_2x_halfsize_p400_s400/result/knn_p400_s400_from_50/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x16/048002.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x16/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_089500_x16_pred.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_4x16x_l0points/result/knn_p50_s50_x16/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_060000_x4_pred.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_2D_wlop_2x16x_p50_s50_longStage/training_ply/step_088500_x16_pred.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_2D_wlop_4x16x_p50_s50_k24/result/knn_p50_s50_x16/048048.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/readme.md",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_013500_x2_pred.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x8/048000.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_3D_2x16x_p400_s1250/training_ply/step_009000_x2_pred.ply",
+		"/mnt/external/points/data/SketchFab/test_mesh/angel_dikart_aligned.ply",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_4x16x/2018_10_12_18_42_20/main_curriculum_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/semi_edgeconv_no_res_interleave.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/semi_edgeconv_interleave_cached.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe_half.py",
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe_half_repatch.py"
+	],
+	"find":
+	{
+		"height": 44.0
+	},
+	"find_in_files":
+	{
+		"height": 116.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"folders":
+	[
+		{
+			"path": "/home/ywang/Documents/points/point-upsampling/3PU_pytorch"
+		}
+	],
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								15,
+								15
+							]
+						],
+						"settings":
+						{
+							"auto_name": "import pytorch",
+							"default_dir": "/home/ywang/Documents/points/point-upsampling/3PU/code",
+							"git_gutter_is_enabled": false,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 32.0
+	},
+	"input":
+	{
+		"height": 221.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.SublimeLinter":
+	{
+		"height": 0.0
+	},
+	"output.SublimeLinter Messages":
+	{
+		"height": 168.0
+	},
+	"output.exec":
+	{
+		"height": 160.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 124.0
+	},
+	"output.markdown":
+	{
+		"height": 168.0
+	},
+	"output.mdpopups":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "",
+	"replace":
+	{
+		"height": 60.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"mis",
+				"code/utils/misc.py"
+			],
+			[
+				"main",
+				"code/main_curriculum_interleave.py"
+			],
+			[
+				"denseplu",
+				"code/dense_edgeconv_interlevelplus_interleave.py"
+			],
+			[
+				"polyg",
+				"prepare_data/polygonmesh_base/polygonmesh.cpp"
+			],
+			[
+				"interplus",
+				"code/dense_edgeconv_interlevelplus_interleave.py"
+			],
+			[
+				"comm",
+				"code/command.sh"
+			],
+			[
+				"interlevplu",
+				"code/dense_edgeconv_interlevelplus_interleave.py"
+			],
+			[
+				"evalu",
+				"code/evaluate.py"
+			],
+			[
+				"intelevelc",
+				"code/dense_edgeconv_interlevelcomp_interleave.py"
+			],
+			[
+				"deninterl",
+				"code/dense_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"ablation",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"model",
+				"code/model_utils.py"
+			],
+			[
+				"tea",
+				"code/teaser_angle"
+			],
+			[
+				"densein",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"dense",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"modelu",
+				"code/model_utils.py"
+			],
+			[
+				"com",
+				"code/command.sh"
+			],
+			[
+				"interlevel",
+				"code/dense_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"ablat",
+				"code/model_ablation_no_intradense.py"
+			],
+			[
+				"edge",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"densei",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"mainin",
+				"code/main_curriculum_interleave.py"
+			],
+			[
+				"noex",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"interl",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"provider3",
+				"code/curriculumn_data_provider3.py"
+			],
+			[
+				"no ex",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"interle",
+				"code/dense_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"mainint",
+				"code/main_curriculum_interleave.py"
+			],
+			[
+				"erro",
+				"code/error_to_coloredply.py"
+			],
+			[
+				"abla",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"denseinter",
+				"code/dense_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"tfu",
+				"code/utils/tf_util2.py"
+			],
+			[
+				"noexp",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"interleve",
+				"code/dense_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"no e",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"ablas",
+				"code/model_ablation_no_intradense.py"
+			],
+			[
+				"intra",
+				"code/model_ablation_no_intradense.py"
+			],
+			[
+				"gener",
+				"code/model_generator2_2new6.py"
+			],
+			[
+				"intraden",
+				"code/model_ablation_no_intradense.py"
+			],
+			[
+				"datapro2",
+				"code/curriculumn_data_provider2.py"
+			],
+			[
+				"modelabl",
+				"code/model_ablation_no_intradense.py"
+			],
+			[
+				"runeva",
+				"~/Documents/points/completion_v0.4/PU-Net/evaluation_code/run_evaluate.py"
+			],
+			[
+				"eva",
+				"code/evaluate.py"
+			],
+			[
+				"mainl",
+				"code/main_curriculum_interleave.py"
+			],
+			[
+				"rune",
+				"~/Documents/points/completion_v0.4/PU-Net/evaluation_code/run_evaluate.py"
+			],
+			[
+				"pointnet",
+				"code/utils/pointnet_util.py"
+			],
+			[
+				"atlas",
+				"code/model_atlas.py"
+			],
+			[
+				"abl",
+				"code/model_ablation_no_expansion.py"
+			],
+			[
+				"gen",
+				"code/model_generator2_2new6.py"
+			],
+			[
+				"interleave",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"curri",
+				"code/curriculumn_data_provider2.py"
+			],
+			[
+				"provider2",
+				"code/curriculumn_data_provider2.py"
+			],
+			[
+				"dataprovi2",
+				"code/curriculumn_data_provider2.py"
+			],
+			[
+				"run",
+				"prepare_data/Poisson_reconstruction/run_reconstruction.sh"
+			],
+			[
+				"evalua",
+				"code/evaluate.py"
+			],
+			[
+				"nuc",
+				"~/Documents/points/completion_v0.4/PU-Net/evaluation_code/nuc.cpp"
+			],
+			[
+				"comma",
+				"code/command.sh"
+			],
+			[
+				"addnoi",
+				"code/add_noise.py"
+			],
+			[
+				"pcu",
+				"code/utils/pc_util.py"
+			],
+			[
+				"curi",
+				"code/main_curriculum_interleave.py"
+			],
+			[
+				"modeul",
+				"code/model_utils.py"
+			],
+			[
+				"mainpu",
+				"code/main_PU.py"
+			],
+			[
+				"evaluation",
+				"~/Documents/points/completion_v0.4/PU-Net/evaluation_code/evaluation.cpp"
+			],
+			[
+				"off",
+				"code/utils/off2obj.py"
+			],
+			[
+				"crea",
+				"prepare_data/create_tfrecords.py"
+			],
+			[
+				"evaluc",
+				"~/Documents/points/completion_v0.4/PU-Net/evaluation_code/evaluation.cpp"
+			],
+			[
+				"interplu",
+				"code/dense_edgeconv_interlevelplus_interleave.py"
+			],
+			[
+				"minpu",
+				"code/main_PU.py"
+			],
+			[
+				"",
+				"untitled"
+			],
+			[
+				"dene",
+				"code/dense_edgeconv_interleave.py"
+			],
+			[
+				"gene",
+				"code/model_generator2_2new6.py"
+			],
+			[
+				"modeldi",
+				"code/model_discriminator.py"
+			],
+			[
+				"intelevelp",
+				"code/dense_edgeconv_interlevelplus_interleave.py"
+			],
+			[
+				"run poi",
+				"prepare_data/Poisson_reconstruction/run_reconstruction.sh"
+			],
+			[
+				"new",
+				"code/new_data_provider.py"
+			],
+			[
+				"newdata",
+				"code/new_data_provider.py"
+			],
+			[
+				"datapro",
+				"code/new_data_provider.py"
+			],
+			[
+				"maininter",
+				"code/main_curriculum_interleave.py"
+			],
+			[
+				"poisson",
+				"prepare_data/Poisson_reconstruction/meshlab_poisson_reconstruction.mlx"
+			],
+			[
+				"main pu",
+				"code/main_PU.py"
+			],
+			[
+				"genera",
+				"code/model_generator2_2new6.py"
+			],
+			[
+				"newda",
+				"code/new_data_provider.py"
+			],
+			[
+				"pu main",
+				"code/main_PU.py"
+			],
+			[
+				"provider4",
+				"code/curriculumn_data_provider4.py"
+			],
+			[
+				"data provider2",
+				"code/curriculumn_data_provider2.py"
+			],
+			[
+				"dataprovi4",
+				"code/curriculumn_data_provider4.py"
+			],
+			[
+				"create",
+				"prepare_data/create_tfrecords.py"
+			],
+			[
+				"tfr",
+				"prepare_data/create_tfrecords.py"
+			],
+			[
+				"comman",
+				"code/command.sh"
+			],
+			[
+				"create ",
+				"prepare_data/create_tfrecords.py"
+			],
+			[
+				"dense edge",
+				"dense_edgeconv_interleave.py"
+			],
+			[
+				"proi2",
+				"curriculumn_data_provider2.py"
+			],
+			[
+				"provi3",
+				"curriculumn_data_provider3.py"
+			],
+			[
+				"utilsmi",
+				"utils/misc.py"
+			],
+			[
+				"addn",
+				"add_noise.py"
+			],
+			[
+				"dense interle",
+				"dense_edgeconv_interleave.py"
+			],
+			[
+				"mod",
+				"model_utils.py"
+			],
+			[
+				"main int",
+				"main_curriculum_interleave.py"
+			],
+			[
+				"add",
+				"add_noise.py"
+			],
+			[
+				"dataprovider3",
+				"curriculumn_data_provider3.py"
+			],
+			[
+				"desemi",
+				"dense_semi_edgeconv_interleave.py"
+			],
+			[
+				"plot",
+				"plot_results.py"
+			],
+			[
+				"int",
+				"main_curriculum_interleave.py"
+			],
+			[
+				"lot",
+				"plot_results.py"
+			],
+			[
+				"inter",
+				"main_curriculum_interleave.py"
+			],
+			[
+				"plotre",
+				"plot_results.py"
+			],
+			[
+				"dataprov",
+				"curriculumn_data_provider3.py"
+			],
+			[
+				"maincur",
+				"main_curriculum.py"
+			],
+			[
+				"main interl",
+				"main_curriculum_interleave.py"
+			],
+			[
+				"dense semiinter",
+				"dense_semi_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"dense interleve",
+				"dense_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"densee",
+				"dense_edgeconv_interleave.py"
+			],
+			[
+				"dense semiinterlev",
+				"dense_semi_edgeconv_interlevel_interleave.py"
+			],
+			[
+				"datp",
+				"curriculumn_data_provider2.py"
+			],
+			[
+				"dens semi",
+				"dense_semi_edgeconv_interleave.py"
+			],
+			[
+				"semiden",
+				"semi_edgeconv_interleave.py"
+			],
+			[
+				"semi",
+				"semi_edgeconv_interleave.py"
+			],
+			[
+				"dense_edgeconv_interleave",
+				"dense_edgeconv_interleave.py"
+			],
+			[
+				"datapriv",
+				"curriculumn_data_provider3.py"
+			],
+			[
+				"half",
+				"model_microscpe_half_interleave.py"
+			],
+			[
+				"halfin",
+				"model_microscpe_half_interleave.py"
+			],
+			[
+				"dense semi",
+				"dense_semi_edgeconv_interleave.py"
+			],
+			[
+				"group",
+				"tf_ops/grouping/tf_grouping.py"
+			],
+			[
+				"proiv",
+				"curriculumn_data_provider3.py"
+			],
+			[
+				"nndis",
+				"tf_ops/CD/tf_nndistance_g.cu"
+			],
+			[
+				"provi2",
+				"curriculumn_data_provider2.py"
+			],
+			[
+				"mainjoi",
+				"main_curriculum_joint.py"
+			],
+			[
+				"rpvi3",
+				"curriculumn_data_provider3.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"~/Documents/superres/iav-superres/sr_disney.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 461.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 327.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

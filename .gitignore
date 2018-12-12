@@ -1,0 +1,5 @@
+*.pyc
+*.o
+*.egg
+sampling/sampling.egg-info/*
+sampling/build
