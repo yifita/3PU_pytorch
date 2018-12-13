@@ -79,8 +79,8 @@ class ChamferLoss(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    pc1 = torch.randn([2, 320, 3], dtype=torch.float32, requires_grad=True).cuda()
-    pc2 = torch.randn([2, 320, 3], dtype=torch.float32, requires_grad=True).cuda()
+    pc1 = torch.randn([2, 320, 3], dtype=torch.float64, requires_grad=True).cuda()
+    pc2 = torch.randn([2, 320, 3], dtype=torch.float64, requires_grad=True).cuda()
     chamfer = ChamferLoss()
     from torch.autograd import gradcheck
     test = gradcheck(nndistance, [pc1, pc2], eps=1e-6, atol=1e-4)

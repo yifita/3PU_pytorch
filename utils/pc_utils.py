@@ -65,18 +65,6 @@ def volume_to_point_cloud(vol):
     return points
 
 
-def extract_knn_patch(queries, pc, k):
-    """
-    queries [M, C]
-    pc [P, C]
-    """
-    knn_search = NearestNeighbors(n_neighbors=k, algorithm='auto')
-    knn_search.fit(pc)
-    knn_idx = knn_search.kneighbors(queries, return_distance=False)
-    k_patches = np.take(pc, knn_idx, axis=0)  # M, K, C
-    return k_patches
-
-
 def normalize_point_cloud(input):
     """
     input: pc [N, P, 3]

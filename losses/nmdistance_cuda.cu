@@ -9,7 +9,7 @@
 
 
 // closest point from xyz (b, n, 3) to xyz2 (b, m, 3)
-template <unsigned int batch>
+template <unsigned int batch, typename scalar_t>
 __global__ void NmDistanceKernel(int b, int n,
 		const float * xyz, int m, const float * xyz2, float *result, int *result_i){
 	// buffer to cache xyz2 4bytes*3*2^9 = 6kB shared
@@ -144,6 +144,7 @@ __global__ void NmDistanceKernel(int b, int n,
 	}
 }
 
+template <typename scalar_t>
 std::vector<at::Tensor> NmDistanceKernelLauncher(int b,int n, at::Tensor xyz,
 		int m, at::Tensor xyz2, at::Tensor result, at::Tensor result_i, at::Tensor result2, at::Tensor result2_i){
 	// bxn
@@ -152,48 +153,48 @@ std::vector<at::Tensor> NmDistanceKernelLauncher(int b,int n, at::Tensor xyz,
 	n_blocks = min(32, (n*b + n_threads/2)/n_threads);
 	switch (n_threads) {
 		case 512:
-		NmDistanceKernel<512><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<512, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 256:
-		NmDistanceKernel<256><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<256, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 128:
-		NmDistanceKernel<128><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<128, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 64:
-		NmDistanceKernel<64><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<64, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 32:
-		NmDistanceKernel<32><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<32, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 16:
-		NmDistanceKernel<16><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<16, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 8:
-		NmDistanceKernel<8><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<8, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 4:
-		NmDistanceKernel<4><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<4, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 2:
-		NmDistanceKernel<2><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<2, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		case 1:
-		NmDistanceKernel<1><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<1, scalar_t><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 		default:
-		NmDistanceKernel<512><<<n_blocks, n_threads>>>(b,n,xyz.data<float>(),
-			m,xyz2.data<float>(),result.data<float>(),result_i.data<int32_t>());
+		NmDistanceKernel<512><<<n_blocks, n_threads>>>(b,n,xyz.data<scalar_t>(),
+			m,xyz2.data<scalar_t>(),result.data<scalar_t>(),result_i.data<int32_t>());
 		break;
 	}
 
@@ -202,48 +203,48 @@ std::vector<at::Tensor> NmDistanceKernelLauncher(int b,int n, at::Tensor xyz,
 	n_blocks = min(32, (m*b + n_threads/2)/n_threads);
 	switch (n_threads){
 		case 512:
-		NmDistanceKernel<512><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<512, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 256:
-		NmDistanceKernel<256><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<256, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 128:
-		NmDistanceKernel<128><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<128, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 64:
-		NmDistanceKernel<64><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<64, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 32:
-		NmDistanceKernel<32><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<32, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 16:
-		NmDistanceKernel<16><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<16, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 8:
-		NmDistanceKernel<8><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<8, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 4:
-		NmDistanceKernel<4><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<4, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 2:
-		NmDistanceKernel<2><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<2, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		case 1:
-		NmDistanceKernel<1><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<1, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 		default:
-		NmDistanceKernel<512><<<n_blocks, n_threads>>>(b,m,xyz2.data<float>(),
-			n,xyz.data<float>(),result2.data<float>(),result2_i.data<int32_t>());
+		NmDistanceKernel<512, scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
+			n,xyz.data<scalar_t>(),result2.data<scalar_t>(),result2_i.data<int32_t>());
 		break;
 	}
 
@@ -254,11 +255,6 @@ std::vector<at::Tensor> NmDistanceKernelLauncher(int b,int n, at::Tensor xyz,
 	  }
 	return {result, result_i, result2, result2_i};
 }
-
-// template std::vector<at::Tensor> NmDistanceKernelLauncher<double>(int b,int n, at::Tensor xyz,
-// 		int m, at::Tensor xyz2, at::Tensor result, at::Tensor result_i, at::Tensor result2, at::Tensor result2_i);
-// template std::vector<at::Tensor> NmDistanceKernelLauncher<float>(int b,int n, at::Tensor xyz,
-// 		int m, at::Tensor xyz2, at::Tensor result, at::Tensor result_i, at::Tensor result2, at::Tensor result2_i);
 
 __global__ void NmDistanceGradKernel(int b, int n, const float * xyz1,
 		int m, const float * xyz2, const float * grad_dist1, const int * idx1, float * grad_xyz1, float * grad_xyz2){

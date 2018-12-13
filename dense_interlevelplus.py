@@ -16,3 +16,6 @@ class Net(torch.nn.Module):
         self.growth_rate = growth_rate
         self.dense_n = dense_n
         self.fm_knn = fm_knn
+
+    def forward(self):
+        pass
