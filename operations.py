@@ -32,7 +32,7 @@ def extract_xyz_feature_patch(batch_xyz, k, batch_features=None, gt_xyz=None, gt
     """
     batch_size, _, num_point = batch_xyz.shape.as_list()
     if patch_num == 1:
-        seed_idx = torch.randint(low=0, high=num_point, [batch_size, patch_num], dtype=torch.int32,
+        seed_idx = torch.randint(low=0, high=num_point, size=[batch_size, patch_num], dtype=torch.int32,
             layout=torch.strided, device=batch_xyz.device)
     else:
         assert(batch_size == 1)
@@ -126,7 +126,7 @@ def search_index_pytorch(database, x, k, D=None, I=None):
 
 class KNN(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, k, query, points, unique=True, NCHW=True):
+    def forward(ctx, k, query, points):
         """
         :param k: k in KNN
                query: BxMxC
@@ -136,14 +136,6 @@ class KNN(torch.autograd.Function):
             neighbors_points: BxCxMxK
             index_batch: BxMxK
         """
-        batch_size, channels, num_points = points.size()
-        if NCHW:
-            points_trans = points.transpose(2, 1).contiguous()
-            query_trans = query.transpose(2, 1).contiguous()
-        else:
-            points_trans = points.contiguous()
-            query_trans = query.contiguous()
-
         # selected_gt: BxkxCxM
         # process each batch independently.
         index_batch = []
@@ -152,25 +144,32 @@ class KNN(torch.autograd.Function):
             # index = self.build_nn_index(points_trans[i])
             # database is gt_pc, predict_pc -> gt_pc -----------------------------------------------------------
             # _, I_var = search_index_pytorch(index, query_trans[i], k)
-            D_var, I_var = search_index_pytorch(points_trans[i], query_trans[i], k)
+            D_var, I_var = search_index_pytorch(points[i], query[i], k)
             GPU_RES.syncDefaultStreamCurrentDevice()
             index_batch.append(I_var)  # M, k
             distance_batch.append(D_var)  # M, k
 
         index_batch = torch.stack(index_batch, dim=0)  # B, M, K
         distance_batch = torch.stack(distance_batch, dim=0)
-        points_expanded = points.unsqueeze(dim=2).expand((-1, -1, query.size(2), -1))  # B, C, M, N
-        index_batch_expanded = index_batch.unsqueeze(dim=1).expand((-1, points.size(1), -1, -1))  # B, C, M, k
-        neighbor_points = torch.gather(points_expanded, 3, index_batch_expanded)
-        index_batch = index_batch.detach()
-        return neighbor_points, index_batch, distance_batch
-
-    @staticmethod
-    def backward(ctx, d_points, d_index, d_distance):
-        return None, None, None
+        ctx.mark_non_differentiable(index_batch, distance_batch)
+        return index_batch, distance_batch
 
 
-group_knn = KNN.apply
+def group_knn(k, query, points, unique=True, NCHW=True):
+    batch_size, channels, num_points = points.size()
+    if NCHW:
+        points_trans = points.transpose(2, 1).contiguous()
+        query_trans = query.transpose(2, 1).contiguous()
+    else:
+        points_trans = points.contiguous()
+        query_trans = query.contiguous()
+
+    index_batch, distance_batch = KNN.apply(k, query_trans, points_trans)
+    points_expanded = points.unsqueeze(dim=2).expand((-1, -1, query.size(2), -1))  # B, C, M, N
+    index_batch_expanded = index_batch.unsqueeze(dim=1).expand((-1, points.size(1), -1, -1))  # B, C, M, k
+    neighbor_points = torch.gather(points_expanded, 3, index_batch_expanded)
+    index_batch = index_batch
+    return neighbor_points, index_batch, distance_batch
 
 
 class GatherFunction(torch.autograd.Function):
@@ -247,40 +246,51 @@ class FurthestPointSampling(torch.autograd.Function):
         sampling.furthest_sampling(
             B, N, npoint, xyz, temp, idx
         )
+        ctx.mark_non_differentiable(idx)
         return idx
 
-    @staticmethod
-    def backward(ctx, grad):
-        return None, None
+
+__furthest_point_sample = FurthestPointSampling.apply
 
 
-furthest_point_sample = FurthestPointSampling.apply
+def furthest_point_sample(xyz, npoint):
+    assert(xyz.dim() == 3), "input for furthest sampling must be a 3D-tensor, but xyz.size() is {}".format(xyz.size())
+    # need transpose
+    if xyz.size(2) != 3:
+        assert(xyz.size(1) == 3), "furthest sampling is implemented for 3D points"
+        xyz = xyz.transpose(2, 1).contiguous()
 
-class FurthestPoint(torch.nn.Module):
-    """
-    Furthest point sampling for Bx3xN points
-    param:
-        xyz: Bx3XN or BxNx3 tensor
-        npoint: number of points
-    return:
-        idx: Bxnpoint indices
-        sampled_xyz: Bx3xnpoint coordinates
-    """
-    def forward(self, xyz, npoint):
-        assert(xyz.dim() == 3), "input for furthest sampling must be a 3D-tensor, but xyz.size() is {}".format(xyz.size())
-        # need transpose
-        if xyz.size(2) != 3:
-            assert(xyz.size(1) == 3), "furthest sampling is implemented for 3D points"
-            xyz = xyz.transpose(2, 1).contiguous()
+    assert(xyz.size(2) == 3), "furthest sampling is implemented for 3D points"
+    idx = __furthest_point_sample(xyz, npoint)
+    sampled_pc = gather_points(xyz.transpose(2, 1).contiguous(), idx)
+    return idx, sampled_pc
 
-        assert(xyz.size(2) == 3), "furthest sampling is implemented for 3D points"
-        idx = furthest_point_sample(xyz, npoint)
-        sampled_pc = gather_points(xyz.transpose(2, 1).contiguous(), idx)
-        return idx, sampled_pc
+
+# class FurthestPoint(torch.nn.Module):
+#     """
+#     Furthest point sampling for Bx3xN points
+#     param:
+#         xyz: Bx3XN or BxNx3 tensor
+#         npoint: number of points
+#     return:
+#         idx: Bxnpoint indices
+#         sampled_xyz: Bx3xnpoint coordinates
+#     """
+#     def forward(self, xyz, npoint):
+#         assert(xyz.dim() == 3), "input for furthest sampling must be a 3D-tensor, but xyz.size() is {}".format(xyz.size())
+#         # need transpose
+#         if xyz.size(2) != 3:
+#             assert(xyz.size(1) == 3), "furthest sampling is implemented for 3D points"
+#             xyz = xyz.transpose(2, 1).contiguous()
+
+#         assert(xyz.size(2) == 3), "furthest sampling is implemented for 3D points"
+#         idx = furthest_point_sample(xyz, npoint)
+#         sampled_pc = gather_points(xyz.transpose(2, 1).contiguous(), idx)
+#         return idx, sampled_pc
 
 
 if __name__ == '__main__':
-    from utils.pc_util import read_ply, save_ply, save_ply_property
+    from utils.pc_utils import read_ply, save_ply, save_ply_property
     cuda0 = torch.device('cuda:0')
     pc = read_ply("/home/ywang/Documents/points/point-upsampling/3PU/prepare_data/polygonmesh_base/build/data_PPU_output/training/112/angel4_aligned_2.ply")
     pc = pc[:, :3]
@@ -290,13 +300,12 @@ if __name__ == '__main__':
     pc = pc.transpose(2, 1)
 
     # test furthest point
-    furthest_point = FurthestPoint()
-    idx, sampled_pc = furthest_point(pc, 1250)
+    idx, sampled_pc = furthest_point_sample(pc, 1250)
     output = sampled_pc.transpose(2, 1).cpu().squeeze()
     save_ply(output.detach(), "./output.ply", colors=None, normals=None)
 
     # test KNN
-    knn_points, _, _ = group_knn(10, sampled_pc, pc)  # B, C, M, K
+    knn_points, _, _ = group_knn(10, sampled_pc, pc, NCHW=True)  # B, C, M, K
     labels = torch.arange(0, knn_points.size(2)).unsqueeze_(0).unsqueeze_(0).unsqueeze_(-1)  # 1, 1, M, 1
     labels = labels.expand(knn_points.size(0), -1, -1, knn_points.size(3))  # B, 1, M, K
     # B, C, P
@@ -305,6 +314,7 @@ if __name__ == '__main__':
     save_ply_property(knn_points, labels, "./knn_output.ply", cmap_name='jet')
 
     from torch.autograd import gradcheck
-
+    # test = gradcheck(furthest_point_sample, [pc, 1250], eps=1e-6, atol=1e-4)
+    # print(test)
     test = gradcheck(gather_points, [pc.to(dtype=torch.float64), idx], eps=1e-6, atol=1e-4)
     print(test)

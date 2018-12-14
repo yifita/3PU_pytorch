@@ -2,7 +2,6 @@
 #include <vector>
 
 // CUDA forward declarations
-template <typename scalar_t>
 std::vector<at::Tensor> NmDistanceKernelLauncher(int b,int n, at::Tensor xyz,
     int m, at::Tensor xyz2, at::Tensor result, at::Tensor result_i, at::Tensor result2, at::Tensor result2_i);
 
@@ -24,10 +23,10 @@ std::vector<at::Tensor> nmdistance_forward(
     at::Tensor result2, at::Tensor result2_i) {
   CHECK_INPUT(xyz);
   CHECK_INPUT(xyz2);
-  // return NmDistanceKernelLauncher(b, n, xyz, m, xyz2, result, result_i, result2, result2_i);
-  return AT_DISPATCH_FLOATING_TYPES(xyz.type(), "NmDistanceKernelLauncher", [&]() {
-    return NmDistanceKernelLauncher<scalar_t>(b, n, xyz, m, xyz2, result, result_i, result2, result2_i);
-  });
+  return NmDistanceKernelLauncher(b, n, xyz, m, xyz2, result, result_i, result2, result2_i);
+  // return AT_DISPATCH_FLOATING_TYPES(xyz.type(), "NmDistanceKernelLauncher", [&]() {
+  //   return NmDistanceKernelLauncher<scalar_t>(b, n, xyz, m, xyz2, result, result_i, result2, result2_i);
+  // });
 }
 
 std::vector<at::Tensor> nmdistance_backward(int b,int n, at::Tensor xyz1,

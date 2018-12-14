@@ -1,16 +1,15 @@
 import torch
 import torch.nn as nn
-from model_utils import KNN
+from model_utils import group_knn
 
 
 class DenseEdgeConv(nn.Module):
     """docstring for EdgeConv"""
-    def __init__(self, in_channels, growth_rate, n, k, scope, **kwargs):
+    def __init__(self, in_channels, growth_rate, n, k, **kwargs):
         super(DenseEdgeConv, self).__init__()
         self.growth_rate = growth_rate
         self.n = n
         self.k = k
-        self.knn = KNN()
         self.mlps = torch.nn.ModuleList()
         self.mlps.append(torch.nn.Conv2d(2*in_channels, growth_rate, 1, bias=True))
         for i in range(1, n):
@@ -28,7 +27,7 @@ class DenseEdgeConv(nn.Module):
         """
         if idx is None:
             # BCN(K+1), BN(K+1)
-            knn_point, idx = self.knn(k+1, x, x, unique=True, sort=True)
+            knn_point, idx, _ = group_knn(k+1, x, x, unique=True, sort=True)
             idx = idx[:, :, :, 1:]
             knn_point = knn_point[:, :, :, 1:]
 
@@ -74,6 +73,48 @@ class Conv2d(nn.Module):
                 self.norm = nn.BatchNorm2d(out_channels, affine=True, eps=0.001, momentum=momentum)
             elif self.normalization == 'instance':
                 self.norm = nn.InstanceNorm2d(out_channels, affine=True, eps=0.001, momentum=momentum)
+            else:
+                raise ValueError("only \"batch/instance\" normalization permitted.")
+
+        # activation
+        if activation is not None:
+            if self.activation == 'relu':
+                self.act = nn.ReLU()
+            elif self.activation == 'elu':
+                self.act = nn.ELU(alpha=1.0)
+            elif self.activation == 'lrelu':
+                self.act = nn.LeakyReLU(0.1)
+            else:
+                raise ValueError("only \"relu/elu/lrelu\" allowed")
+
+    def forward(self, x, epoch=None):
+        x = self.conv(x)
+
+        if self.normalization is not None:
+            x = self.norm(x)
+
+        if self.activation is not None:
+            x = self.act(x)
+
+        return x
+
+
+class Conv1d(nn.Module):
+    """1dconvolution with custom normalization and activation"""
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True,
+            activation=None, normalization=None, momentum=0.01):
+        super(Conv2d, self).__init__()
+        self.activation = activation
+        self.normalization = normalization
+        bias = not normalization and bias
+        self.conv = nn.Conv1d(in_channels, out_channels, kernel_size,
+                              stride=stride, padding=padding, bias=bias)
+
+        if normalization is not None:
+            if self.normalization == 'batch':
+                self.norm = nn.BatchNorm1d(out_channels, affine=True, eps=0.001, momentum=momentum)
+            elif self.normalization == 'instance':
+                self.norm = nn.InstanceNorm1d(out_channels, affine=True, eps=0.001, momentum=momentum)
             else:
                 raise ValueError("only \"batch/instance\" normalization permitted.")
 

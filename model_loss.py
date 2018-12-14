@@ -14,6 +14,7 @@ class NmDistanceFunction(torch.autograd.Function):
         result2_i = torch.empty(B, M, dtype=torch.int32, device=xyz2.device)
         result, result_i, result2, result2_i = losses.nmdistance_forward(B, N, xyz1, M, xyz2, result, result_i, result2, result2_i)
         ctx.save_for_backward(xyz1, xyz2, result_i, result2_i)
+        ctx.mark_non_differentiable(result_i, result2_i)
         return result, result_i, result2, result2_i
 
     @staticmethod
@@ -79,9 +80,12 @@ class ChamferLoss(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    pc1 = torch.randn([2, 320, 3], dtype=torch.float64, requires_grad=True).cuda()
-    pc2 = torch.randn([2, 320, 3], dtype=torch.float64, requires_grad=True).cuda()
+    pc1 = torch.randn([2, 600, 3], dtype=torch.float64, requires_grad=True).cuda()
+    pc2 = torch.randn([2, 600, 3], dtype=torch.float64, requires_grad=True).cuda()
     chamfer = ChamferLoss()
     from torch.autograd import gradcheck
-    test = gradcheck(nndistance, [pc1, pc2], eps=1e-6, atol=1e-4)
+    # test = gradcheck(nndistance, [pc1, pc2], eps=1e-3, atol=1e-4)
+    # print(test)
+    pc2 = pc2.detach()
+    test = gradcheck(nndistance, [pc1, pc2], eps=1e-3, atol=1e-4)
     print(test)

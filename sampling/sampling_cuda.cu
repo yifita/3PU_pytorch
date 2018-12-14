@@ -102,8 +102,8 @@ __global__ void furthest_point_sampling_forward_kernel(int b, int n, int m,
     if (m <= 0) return;
     __shared__ float dists[block_size];
     __shared__ int dists_i[block_size];
-    const unsigned int buffer_size = 3072;
-    __shared__ float buf[buffer_size*3];
+    const unsigned int buffer_size = block_size;
+    __shared__ float buf[block_size*3];
     for (int i=blockIdx.x; i<b; i+=gridDim.x){
         int old=0;
         // first out of sought m points is point0
