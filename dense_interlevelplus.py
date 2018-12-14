@@ -38,7 +38,7 @@ class Level(torch.nn.Module):
         self.step_ratio = step_ratio
         # create code for feature expansion
         if step_ratio < 4:
-            # 1xstep_ratio
+            # 1x1xstep_ratio
             self.code = self.gen_1d_grid(step_ratio).unsqueeze().detach()
         else:
             expansion_ratio = round(sqrt(step_ratio))**2
@@ -97,7 +97,7 @@ class Level(torch.nn.Module):
         grid = torch.linspace(-0.2, 0.2, num_grid_point).view(2, num_grid_point)
         return grid
 
-    def forward(self, x, previous_level4=None):
+    def forward(self, x, batch_radius, previous_level4=None):
         # split input into patches
         l0_xyz = x
         x = self.layer0(x.unsqueeze(dim=-1)).squeeze(dim=-1)
@@ -124,5 +124,9 @@ class Level(torch.nn.Module):
 
             x = 0.2 * knn_feats + x
 
-        self.code.expand(x.size(0), -1, -1).repeat()
-        torch.cat([])
+        ratio = self.code.size(1)
+        code = self.code.expand(x.size(0), -1, -1).repeat(x.size(0), ratio, x.size(2))
+        code = batch_radius.unsqueeze(-1).unsqueeze(-1) * code
+        # BxCxNx1 -> BxCxNxratio -> BxCxNxratio
+        # x = torch.reshape(
+        #     x.unsqueeze(2).repeat(x.size(0), x.size(1), self.code.size(-1), x.size(3)), [x.shape[0], num_point*expansion_ratio, 1, l4_features.shape[-1]])
