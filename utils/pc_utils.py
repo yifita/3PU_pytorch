@@ -17,13 +17,15 @@ import plyfile
 # Point Cloud/Volume Conversions
 # ----------------------------------------
 
+
 def point_cloud_to_volume_batch(point_clouds, vsize=12, radius=1.0, flatten=True):
     """ Input is BxNx3 batch of point cloud
         Output is Bx(vsize^3)
     """
     vol_list = []
     for b in range(point_clouds.shape[0]):
-        vol = point_cloud_to_volume(np.squeeze(point_clouds[b,:,:]), vsize, radius)
+        vol = point_cloud_to_volume(np.squeeze(
+            point_clouds[b, :, :]), vsize, radius)
         if flatten:
             vol_list.append(vol.flatten())
         else:
@@ -39,11 +41,11 @@ def point_cloud_to_volume(points, vsize, radius=1.0):
         output is vsize*vsize*vsize
         assumes points are in range [-radius, radius]
     """
-    vol = np.zeros((vsize,vsize,vsize))
+    vol = np.zeros((vsize, vsize, vsize))
     voxel = 2*radius/float(vsize)
     locations = (points + radius)/voxel
     locations = locations.astype(int)
-    vol[locations[:,0],locations[:,1],locations[:,2]] = 1.0
+    vol[locations[:, 0], locations[:, 1], locations[:, 2]] = 1.0
     return vol
 
 
@@ -57,10 +59,10 @@ def volume_to_point_cloud(vol):
     for a in range(vsize):
         for b in range(vsize):
             for c in range(vsize):
-                if vol[a,b,c] == 1:
-                    points.append(np.array([a,b,c]))
+                if vol[a, b, c] == 1:
+                    points.append(np.array([a, b, c]))
     if len(points) == 0:
-        return np.zeros((0,3))
+        return np.zeros((0, 3))
     points = np.vstack(points)
     return points
 
@@ -80,6 +82,7 @@ def normalize_point_cloud(input):
         np.sqrt(np.sum(input ** 2, axis=-1, keepdims=True)), axis=axis, keepdims=True)
     input = input / furthest_distance
     return input, centroid, furthest_distance
+
 
 def jitter_perturbation_point_cloud(batch_data, sigma=0.005, clip=0.02, is_2D=False):
     """ Randomly jitter points. jittering is per point.
@@ -108,7 +111,7 @@ def downsample_points(pts, K):
         return sampler(pts, K)
     else:
         return pts[np.random.choice(pts.shape[0], K,
-            replace=(K<pts.shape[0])), :]
+                                    replace=(K < pts.shape[0])), :]
 
 
 class FarthestSampler:
@@ -128,17 +131,22 @@ class FarthestSampler:
                 distances, self._calc_distances(farthest_pts[i], pts))
         return farthest_pts
 
+
 def read_ply_with_color(file, count=None):
     loaded = plyfile.PlyData.read(file)
-    points = np.vstack([loaded['vertex'].data['x'], loaded['vertex'].data['y'], loaded['vertex'].data['z']])
+    points = np.vstack([loaded['vertex'].data['x'],
+                        loaded['vertex'].data['y'], loaded['vertex'].data['z']])
     if 'nx' in loaded['vertex'].data.dtype.names:
-        normals = np.vstack([loaded['vertex'].data['nx'], loaded['vertex'].data['ny'], loaded['vertex'].data['nz']])
+        normals = np.vstack([loaded['vertex'].data['nx'],
+                             loaded['vertex'].data['ny'], loaded['vertex'].data['nz']])
         points = np.concatenate([points, normals], axis=0)
     colors = None
     if 'red' in loaded['vertex'].data.dtype.names:
-        colors = np.vstack([loaded['vertex'].data['red'], loaded['vertex'].data['green'], loaded['vertex'].data['blue']])
+        colors = np.vstack([loaded['vertex'].data['red'],
+                            loaded['vertex'].data['green'], loaded['vertex'].data['blue']])
         if 'alpha' in loaded['vertex'].data.dtype.names:
-            colors = np.concatenate([colors, np.expand_dims(loaded['vertex'].data['alpha'], axis=0)], axis=0)
+            colors = np.concatenate([colors, np.expand_dims(
+                loaded['vertex'].data['alpha'], axis=0)], axis=0)
         colors = colors.transpose(1, 0)
         colors = colors.astype(np.float32) / 255.0
 
@@ -161,9 +169,11 @@ def read_ply_with_color(file, count=None):
 
 def read_ply(file, count=None):
     loaded = plyfile.PlyData.read(file)
-    points = np.vstack([loaded['vertex'].data['x'], loaded['vertex'].data['y'], loaded['vertex'].data['z']])
+    points = np.vstack([loaded['vertex'].data['x'],
+                        loaded['vertex'].data['y'], loaded['vertex'].data['z']])
     if 'nx' in loaded['vertex'].data.dtype.names:
-        normals = np.vstack([loaded['vertex'].data['nx'], loaded['vertex'].data['ny'], loaded['vertex'].data['nz']])
+        normals = np.vstack([loaded['vertex'].data['nx'],
+                             loaded['vertex'].data['ny'], loaded['vertex'].data['nz']])
         points = np.concatenate([points, normals], axis=0)
 
     points = points.transpose(1, 0)
@@ -238,12 +248,14 @@ def load(filename, count=None):
 
 
 def save_ply(points, filename, colors=None, normals=None):
-    vertex = np.core.records.fromarrays(points.transpose(1,0),names='x, y, z',formats='f4, f4, f4')
+    vertex = np.core.records.fromarrays(points.transpose(
+        1, 0), names='x, y, z', formats='f4, f4, f4')
     num_vertex = len(vertex)
     desc = vertex.dtype.descr
 
     if normals is not None:
-        vertex_normal = np.core.records.fromarrays(normals.transpose(1,0),names='nx, ny, nz',formats='f4, f4, f4')
+        vertex_normal = np.core.records.fromarrays(
+            normals.transpose(1, 0), names='nx, ny, nz', formats='f4, f4, f4')
         assert len(vertex_normal) == num_vertex
         desc = desc + vertex_normal.dtype.descr
 
@@ -252,9 +264,11 @@ def save_ply(points, filename, colors=None, normals=None):
         if colors.max() <= 1:
             colors = colors*255
         if colors.shape[1] == 4:
-            vertex_color = np.core.records.fromarrays(colors.transpose(1,0),names='red, green, blue, alpha',formats='u1, u1, u1, u1')
+            vertex_color = np.core.records.fromarrays(colors.transpose(
+                1, 0), names='red, green, blue, alpha', formats='u1, u1, u1, u1')
         else:
-            vertex_color = np.core.records.fromarrays(colors.transpose(1,0),names='red, green, blue',formats='u1, u1, u1')
+            vertex_color = np.core.records.fromarrays(colors.transpose(
+                1, 0), names='red, green, blue', formats='u1, u1, u1')
         desc = desc + vertex_color.dtype.descr
 
     vertex_all = np.empty(num_vertex, dtype=desc)
