@@ -185,8 +185,7 @@ class FurthestPointSampling(torch.autograd.Function):
         -------
         torch.LongTensor
             (B, npoint) tensor containing the indices
-        torch.FloatTensor
-            (B, npoint, 3) tensor containing the set
+
         """
         B, N, _ = xyz.size()
 
@@ -204,15 +203,28 @@ __furthest_point_sample = FurthestPointSampling.apply
 
 
 def furthest_point_sample(xyz, npoint):
+    """
+    :param
+        xyz (B, 3, N) or (B, N, 3)
+        npoint a constant
+    :return
+        torch.LongTensor
+            (B, npoint) tensor containing the indices
+        torch.FloatTensor
+            (B, npoint, 3) or (B, 3, npoint) point sets"""
     assert(xyz.dim() == 3), "input for furthest sampling must be a 3D-tensor, but xyz.size() is {}".format(xyz.size())
     # need transpose
+    trans = False
     if xyz.size(2) != 3:
         assert(xyz.size(1) == 3), "furthest sampling is implemented for 3D points"
         xyz = xyz.transpose(2, 1).contiguous()
+        trans = True
 
     assert(xyz.size(2) == 3), "furthest sampling is implemented for 3D points"
     idx = __furthest_point_sample(xyz, npoint)
     sampled_pc = gather_points(xyz.transpose(2, 1).contiguous(), idx)
+    if trans:
+        sampled_pc = sampled_pc.transpose(2, 1).contiguous()
     return idx, sampled_pc
 
 

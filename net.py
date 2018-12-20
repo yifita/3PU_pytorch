@@ -1,5 +1,5 @@
 import torch
-from math import log, round, sqrt
+from math import log, sqrt
 from collections import OrderedDict
 
 import layers
@@ -13,6 +13,7 @@ class Net(torch.nn.Module):
                  max_up_ratio=16,
                  step_ratio=2, no_res=False,
                  knn=16, growth_rate=12, dense_n=3,
+                 max_num_point=312,
                  fm_knn=3, **kwargs):
         super(Net, self).__init__()
         self.bradius = bradius
@@ -23,10 +24,12 @@ class Net(torch.nn.Module):
         self.growth_rate = growth_rate
         self.dense_n = dense_n
         self.fm_knn = fm_knn
-        num_levels = log(max_up_ratio, step_ratio)
-        for l in range(num_levels):
-            self.add_module('level_%d' % l, Level(
-                dense_n=dense_n, growth_rate=growth_rate, knn=knn))
+        self.num_levels = log(max_up_ratio, step_ratio)
+        self.levels = torch.nn.ModuleDict()
+        self.max_num_point = max_num_point
+        for l in range(self.num_levels):
+            self.levels['level_%d' % l] = Level(
+                dense_n=dense_n, growth_rate=growth_rate, knn=knn)
 
     def extract_xyz_feature_patch(self, batch_xyz, k, batch_features=None, gt_xyz=None, gt_k=None):
         """
@@ -34,7 +37,6 @@ class Net(torch.nn.Module):
         :param
             batch_xyz: Bx3xN
             k patch:   size
-            batch_features: BxCxN
             gt_xyz:    Bx3xM
             gt_k:      size of ground truth patch
         """
@@ -45,7 +47,7 @@ class Net(torch.nn.Module):
                                      layout=torch.strided, device=batch_xyz.device)
         else:
             assert(batch_size == 1)
-            # remove residual,
+            # remove residual
             _, _, closest_d = operations.group_knn(
                 2, batch_xyz, batch_xyz, unique=False)
             # BxN
@@ -91,8 +93,39 @@ class Net(torch.nn.Module):
 
         return batch_xyz, batch_features, gt_xyz
 
-    def forward(self):
-        pass
+    def forward(self, xyz, batch_radius, ratio=None, gt=None):
+        ratio = ratio or self.max_up_ratio
+        if self.training:
+            assert(gt is not None)
+
+        batch_size, _, num_point = xyz.size()
+        num_levels = log(ratio, self.step_ratio)
+        max_num_point = min(num_point, self.max_num_point)
+
+        for l in range(num_levels):
+            curr_ratio = self.step_ratio ** (l + 1)
+            # extract input to patches
+            if l > 0 and xyz.size(-1) > max_num_point:
+                gt_k = max_num_point * ratio // curr_ratio * self.step_ratio
+                # patches of xyz and feature, but unnormalized
+                patch_xyz, _, gt = self.extract_xyz_feature_patch(
+                    xyz, max_num_point, batch_features=None, gt_k=gt_k, gt_xyz=gt)
+            # Bx3x(N*r) and BxCx(N*r)
+            patch_xyz, l4_features, batch_radius = self.levels['level_%d' % l](
+                patch_xyz, gt)
+            # merge patches in testing
+            if not self.training and (patch_xyz.shape[0] != batch_size) and l > 0:
+                if not self.training:
+                    patch_xyz = torch.cat(
+                        torch.split(patch_xyz, batch_size, dim=0), dim=2)
+                    num_output_point = num_point*self.step_ratio
+                    # resample to get sparser points idx [B, P, 1]
+                    idx, xyz = operations.furthest_point_sample(
+                        num_output_point, patch_xyz)
+            else:
+                xyz = patch_xyz
+
+            return xyz, batch_radius
 
 
 class Level(torch.nn.Module):
@@ -175,18 +208,24 @@ class Level(torch.nn.Module):
                               num_grid_point).view(1, num_grid_point)
         return grid
 
-    def forward(self, xyz, batch_radius, previous_level4=None, gt=None):
+    def forward(self, xyz, previous_level4=None, gt=None):
         """
         :param
             xyz             Bx3xN input xyz, unnormalized
-            batch_radius    Bx1
             previous_level4 tuple of the xyz and feature of the final feature
                             in the previous level (Bx3xM, BxCxM)
+        :return
+            xyz             Bx3xNr output xyz, denormalized
+            l4_features     BxCxN feature of the input points
+            batch_radius    Bx1   radius of point clouds
         """
         batch_size, _, num_point = xyz.size()
         # normalize
-        x, centroid, radius = operations.normalize_point_batch(xyz, NCHW=True)
-        x = self.layer0(x.unsqueeze(dim=-1)).squeeze(dim=-1)
+        xyz_normalized, centroid, radius = operations.normalize_point_batch(
+            xyz, NCHW=True)
+        batch_radius = torch.ones(
+            [batch_size], dtype=xyz_normalized.dtype, device=xyz_normalized.device)
+        x = self.layer0(xyz_normalized.unsqueeze(dim=-1)).squeeze(dim=-1)
         x = torch.cat([self.layer1(x), x], dim=1)
         x = torch.cat([self.layer2(self.layer2_prep(x)), x], dim=1)
         x = torch.cat([self.layer3(self.layer3_prep(x)), x], dim=1)
@@ -231,15 +270,25 @@ class Level(torch.nn.Module):
         _, code_length, ratio = self.code.size()
         # 1x1(or2)x(N*r)
         code = self.code.expand(
-            x.size(0), -1, -1).repeat(x.size(0), ratio, x.size(2)*ratio)
-        code = batch_radius.unsqueeze(-1) * code
-        # BxCxN -> BxCxNxratio
-        x = x.unsqueeze(-1).repeat(x.size(0), x.size(1), num_point, ratio)
+            x.size(0), -1, -1).repeat(batch_size, ratio, num_point*ratio)
+        # BxCxN -> BxCxNxr
+        x = x.unsqueeze(-1).repeat(batch_size, x.size(1), num_point, ratio)
+        # BxCx(N*r)
+        x = torch.reshape(x, [batch_size, x.size(1), num_point*ratio])
+        # Bx(C+1)x(N*r)
         x = torch.cat([x, code], dim=1)
 
-        # transform to 3D
+        # transform to 3D coordinates
+        # BxCx(N*r)x1
+        x = x.unsqueeze(-1)
         x = self.up_layer(x)
         x = self.fc_layer1(x)
-        x = self.fc_layer2(x)
-
-        return x, point_features
+        # Bx3x(N*r)
+        x = self.fc_layer2(x).squeeze(-1)
+        # add residual
+        x += torch.reshape(xyz_normalized.unsqueeze(3).expand([-1, -1, -1, ratio]), [
+            batch_size, -1, num_point*ratio])  # B, N, 4, 3
+        # normalize back
+        x = (x * radius) + centroid
+        batch_radius = radius
+        return x, point_features, radius
