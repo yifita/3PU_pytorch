@@ -10,7 +10,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--phase', default='test',
                     help='train or test [default: train]')
 parser.add_argument('--gpu', default='0', help='GPU to use [default: GPU 0]')
-parser.add_argument('--id', help="experiment name, prepended to log_dir")
+parser.add_argument('--id', default='demo',
+                    help="experiment name, prepended to log_dir")
 parser.add_argument('--log_dir', default='../model',
                     help='Log dir [default: log]')
 parser.add_argument('--model', default='model_microscope', help='model name')
