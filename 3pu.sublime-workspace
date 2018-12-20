@@ -4,6 +4,206 @@
 		"selected_items":
 		[
 			[
+				"grid",
+				"gen_grid"
+			],
+			[
+				"knn",
+				"group_knn\tfunction"
+			],
+			[
+				"num_",
+				"num_grid_point\tparam"
+			],
+			[
+				"num",
+				"num_grid_pointxnum_grid_point"
+			],
+			[
+				"def",
+				"defs\tMethod"
+			],
+			[
+				"la",
+				"layers\tmodule"
+			],
+			[
+				"inc",
+				"inc\t#include \"…\""
+			],
+			[
+				"type",
+				"typename"
+			],
+			[
+				"furthest_s",
+				"furthest_point_sample"
+			],
+			[
+				"sampl",
+				"sampled_pc"
+			],
+			[
+				"furht",
+				"furthest_point_sample\tstatement"
+			],
+			[
+				"den",
+				"dense_n\tparam"
+			],
+			[
+				"dista",
+				"distance_batch\tstatement"
+			],
+			[
+				"dist",
+				"distance_batch\tstatement"
+			],
+			[
+				"patch",
+				"patch_num\tparam"
+			],
+			[
+				"batch",
+				"batch_features\tparam"
+			],
+			[
+				"T",
+				"True\tinstance"
+			],
+			[
+				"app",
+				"apply"
+			],
+			[
+				"norm",
+				"normalization\tparam"
+			],
+			[
+				"if",
+				"if\tIf Condition"
+			],
+			[
+				"mod",
+				"model_utils\tmodule"
+			],
+			[
+				"d",
+				"d_input\tstatement"
+			],
+			[
+				"Nm",
+				"NmDistanceKernelLauncher"
+			],
+			[
+				"N",
+				"None\tinstance"
+			],
+			[
+				"forw",
+				"forward_weight\tparam"
+			],
+			[
+				"forward",
+				"forward_weight"
+			],
+			[
+				"G",
+				"GatherFunction\tclass"
+			],
+			[
+				"xy",
+				"xyz2"
+			],
+			[
+				"gradx",
+				"grad_xyz1"
+			],
+			[
+				"req",
+				"requires_grad_1"
+			],
+			[
+				"requ",
+				"requires_grad_1"
+			],
+			[
+				"resuli",
+				"result_i\tstatement"
+			],
+			[
+				"nmdi",
+				"nmdistance_forward"
+			],
+			[
+				"graxy",
+				"grad_xyz1"
+			],
+			[
+				"Nmkerl",
+				"NmDistanceGradKernelLauncher"
+			],
+			[
+				"nmdist",
+				"nmdistance_forward"
+			],
+			[
+				"resul2",
+				"result2"
+			],
+			[
+				"res",
+				"result"
+			],
+			[
+				"gradxy",
+				"grad_xyz2"
+			],
+			[
+				"blo",
+				"blockDim"
+			],
+			[
+				"buffers",
+				"buffer_size"
+			],
+			[
+				"t",
+				"tp\ttemplate <typename ${1:_InputIter}>"
+			],
+			[
+				"resul",
+				"result_i"
+			],
+			[
+				"grad_",
+				"grad_points\tparam"
+			],
+			[
+				"con",
+				"contiguous"
+			],
+			[
+				"gather",
+				"gather_points\tstatement"
+			],
+			[
+				"int",
+				"int32_t"
+			],
+			[
+				"temp",
+				"template"
+			],
+			[
+				"i",
+				"inc\t#include <…>"
+			],
+			[
+				"furth",
+				"furthest_point_sample\tstatement"
+			],
+			[
 				"fea",
 				"features_for_vis\tstatement"
 			],
@@ -20,10 +220,6 @@
 				"patch_visualization\tfunction"
 			],
 			[
-				"knn",
-				"knn_point\tfunction"
-			],
-			[
 				"MO",
 				"MODEL_GEN\tstatement"
 			],
@@ -38,10 +234,6 @@
 			[
 				"farth",
 				"farthest_point_sample"
-			],
-			[
-				"patch",
-				"patches"
 			],
 			[
 				"savep",
@@ -62,10 +254,6 @@
 			[
 				"curi",
 				"curriculumn_data_provider2\tmodule"
-			],
-			[
-				"if",
-				"if\tIf Condition"
 			],
 			[
 				"proper",
@@ -124,16 +312,8 @@
 				"apply_async\tfunction"
 			],
 			[
-				"i",
-				"ifmain\tif __name__ == '__main__'"
-			],
-			[
 				"par",
 				"parse_args\tfunction"
-			],
-			[
-				"dist",
-				"distance\tstatement"
 			],
 			[
 				"str",
@@ -162,10 +342,6 @@
 			[
 				"quer",
 				"query_normalized\tstatement"
-			],
-			[
-				"def",
-				"def\tFunction"
 			],
 			[
 				"idx",
@@ -236,10 +412,6 @@
 				"append_name\tstatement"
 			],
 			[
-				"app",
-				"append_name"
-			],
-			[
 				"jitt",
 				"jitter_sigma"
 			],
@@ -296,10 +468,6 @@
 				"gather_nd"
 			],
 			[
-				"batch",
-				"batch_indices"
-			],
-			[
 				"expan",
 				"expand_dims"
 			],
@@ -332,10 +500,6 @@
 				"is_2D"
 			],
 			[
-				"int",
-				"int32"
-			],
-			[
 				"jitter",
 				"jitter_sigma"
 			],
@@ -350,182 +514,88 @@
 			[
 				"print",
 				"Print"
-			],
-			[
-				"aniso",
-				"anisotropic_loss"
-			],
-			[
-				"store_",
-				"store_true"
-			],
-			[
-				"data",
-				"dataset"
-			],
-			[
-				"from",
-				"from_tensor_slices"
-			],
-			[
-				"lablp",
-				"label_pointclouds\tparam"
-			],
-			[
-				"numpo",
-				"num_points\tstatement"
-			],
-			[
-				"rec",
-				"reduce_sum"
-			],
-			[
-				"no",
-				"normals\tparam"
-			],
-			[
-				"save",
-				"save_ply\tfunction"
-			],
-			[
-				"pc",
-				"pc_util\tmodule"
-			],
-			[
-				"covar",
-				"covariance_matrix"
-			],
-			[
-				"name",
-				"name_scope"
-			],
-			[
-				"group",
-				"grouped\tstatement"
-			],
-			[
-				"cov",
-				"cov_mat\tstatement"
-			],
-			[
-				"grou",
-				"grouped\tstatement"
-			],
-			[
-				"get",
-				"getattr\tfunction"
-			],
-			[
-				"epoch",
-				"epoch\tparam"
-			],
-			[
-				"total",
-				"total_time"
-			],
-			[
-				"Ar",
-				"ArgumentParser\tclass"
-			],
-			[
-				"repl",
-				"relpath_wo_ext\tstatement"
-			],
-			[
-				"fi",
-				"filename\tparam"
-			],
-			[
-				"sam",
-				"numSample"
-			],
-			[
-				"num",
-				"numSample"
-			],
-			[
-				"skif",
-				"skip_feature_xyz"
-			],
-			[
-				"FE",
-				"SKIP_FEATURES_"
-			],
-			[
-				"model",
-				"model_up_ratio\tstatement"
-			],
-			[
-				"trab",
-				"trainable_variables"
-			],
-			[
-				"numb",
-				"num_batches\tstatement"
-			],
-			[
-				"try",
-				"try\tTry/Except"
-			],
-			[
-				"opti",
-				"optimistic_restore\tfunction"
-			],
-			[
-				"tf",
-				"tf_util2\tmodule"
-			],
-			[
-				"den",
-				"dense_n"
-			],
-			[
-				"extr",
-				"extract_patch_for_next_level\tfunction"
-			],
-			[
-				"val",
-				"value"
-			],
-			[
-				"conc",
-				"concat_feat"
-			],
-			[
-				"po",
-				"points"
-			],
-			[
-				"x",
-				"xyz"
-			],
-			[
-				"ex",
-				"expand_dims"
-			],
-			[
-				"las",
-				"last_max_ratio\tstatement"
-			],
-			[
-				"in",
-				"int32"
-			],
-			[
-				"gen",
-				"gen_grid\tfunction"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"contents": "import pytorch ",
+			"file": "dense_interlevelplus.py",
 			"settings":
 			{
-				"buffer_size": 15,
+				"buffer_size": 6173,
+				"encoding": "UTF-8",
 				"line_ending": "Unix",
 				"name": "import pytorch"
+			}
+		},
+		{
+			"file": "layers.py",
+			"settings":
+			{
+				"buffer_size": 5135,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "operations.py",
+			"settings":
+			{
+				"buffer_size": 11593,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sampling/sampling_cuda.cu",
+			"settings":
+			{
+				"buffer_size": 8801,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "losses/nmdistance.cpp",
+			"settings":
+			{
+				"buffer_size": 2009,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sampling/sampling.cpp",
+			"settings":
+			{
+				"buffer_size": 1938,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "losses/setup.py",
+			"settings":
+			{
+				"buffer_size": 399,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "losses/cuda_utils.h",
+			"settings":
+			{
+				"buffer_size": 623,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "utils/pc_utils.py",
+			"settings":
+			{
+				"buffer_size": 10853,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -565,6 +635,22 @@
 				"Git: Add Current File"
 			],
 			[
+				"dele",
+				"File: Delete"
+			],
+			[
+				"rename",
+				"Rename File"
+			],
+			[
+				"re",
+				"Rename File"
+			],
+			[
+				"ren",
+				"Rename File"
+			],
+			[
 				"comm",
 				"Git: Commit"
 			],
@@ -577,16 +663,8 @@
 				"FileDiffs: Menu"
 			],
 			[
-				"rename",
-				"File: Rename"
-			],
-			[
 				"set",
 				"Set Syntax: Python"
-			],
-			[
-				"dele",
-				"File: Delete"
 			],
 			[
 				"rena",
@@ -1063,14 +1141,6 @@
 			[
 				"move ",
 				"Method: Move method down"
-			],
-			[
-				"key",
-				"Keymaps: Find a keymap for..."
-			],
-			[
-				"last",
-				"GotoLastEditEnhanced: Goto last edit"
 			]
 		],
 		"width": 560.0
@@ -1094,10 +1164,31 @@
 	},
 	"expanded_folders":
 	[
-		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch"
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling/dist",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling/sampling.egg-info",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/utils"
 	],
 	"file_history":
 	[
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/model_loss.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/losses/nmdistance_cuda.cu",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/layers.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling/sampling_cuda.cu",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/losses/nmdistance.h",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/model_utils.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/losses/setup.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling/setup.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling/sampling.cpp",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/losses/nmdistance.cpp",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/losses/nndistance_cuda.cu",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/faiss_setup.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/utils/pc_util.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/furthest_sampling/setup.py",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/furthest_sampling/cuda_utils.h",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/furthest_sampling/furthest_sampling_cuda.cu",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/furthest_sampling/furthest_sampling.cpp",
 		"/home/ywang/Documents/points/point-upsampling/3PU/code/tf_ops/grouping/tf_grouping.py",
 		"/home/ywang/Documents/points/point-upsampling/3PU/code/utils/pc_util.py",
 		"/home/ywang/Documents/points/point-upsampling/3PU/evaluation_code/CMakeLists.txt",
@@ -1208,24 +1299,7 @@
 		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_042500_x4_initial_input.ply",
 		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x2/048000.ply",
 		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_104500_x16_pred.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_noisy_2x_halfsize_p400_s400/result/knn_p400_s400_from_50/048000.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x16/048002.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x16/048000.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_089500_x16_pred.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_4x16x_l0points/result/knn_p50_s50_x16/048000.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_060000_x4_pred.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_2D_wlop_2x16x_p50_s50_longStage/training_ply/step_088500_x16_pred.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_2D_wlop_4x16x_p50_s50_k24/result/knn_p50_s50_x16/048048.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/readme.md",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_013500_x2_pred.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x8/048000.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_3D_2x16x_p400_s1250/training_ply/step_009000_x2_pred.ply",
-		"/mnt/external/points/data/SketchFab/test_mesh/angel_dikart_aligned.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_4x16x/2018_10_12_18_42_20/main_curriculum_interleave.py",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/semi_edgeconv_no_res_interleave.py",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/semi_edgeconv_interleave_cached.py",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe_half.py",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/model_microscpe_half_repatch.py"
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_noisy_2x_halfsize_p400_s400/result/knn_p400_s400_from_50/048000.ply"
 	],
 	"find":
 	{
@@ -1243,6 +1317,134 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"l4_features",
+			"code",
+			"log",
+			"points",
+			"query",
+			"previous_feat",
+			"previous_xyz",
+			"pass",
+			"level",
+			"layer4",
+			"level",
+			"lin_space",
+			"print",
+			"continue",
+			"mark_non_differentiable",
+			"mark",
+			"grad_dist1",
+			"NmDistanceKernel",
+			"float",
+			"512",
+			"furthest_point_sample",
+			"gather_points_forward_kernel",
+			"int",
+			"group_knn",
+			"query_trans",
+			"group_knn",
+			"furthest_p",
+			"furthest_point_sample",
+			"group_knn",
+			"template",
+			"data<",
+			"at",
+			"at<",
+			"furthest",
+			"at<",
+			"group_knn",
+			"knn",
+			"furthest_point_sample",
+			"maksed",
+			"axis",
+			"group_knn",
+			"tf.",
+			"axis",
+			"index_batch_expanded",
+			"unsque",
+			"self",
+			"trans",
+			"batch_size",
+			"num_points",
+			"num_dims",
+			"point_cloud",
+			"query_trans",
+			"gather",
+			"knn",
+			"get_edge_feature",
+			"NmDistanceKernelLauncher",
+			"NmDistanceKernel",
+			"data<float>",
+			"result",
+			"data<float>(),",
+			"data<float>",
+			"result",
+			"data<float>(),",
+			"data<float>",
+			"NmDistanceKernel",
+			"n,xyz",
+			"scalar_t",
+			"float",
+			"scalar_t",
+			"NmDistanceKernel",
+			"float64",
+			"CHECK_INPUT",
+			"AT_DISPATCH_FLOATING_TYPES_AND_HALF",
+			"NmDistanceKernelLauncher",
+			"NmDistanceKernel",
+			"float",
+			"int",
+			"float",
+			"result_i",
+			"data<float>(),",
+			"<float>",
+			"float",
+			"dists_backward",
+			"forward",
+			"dists_backward",
+			"dists_forward",
+			"full",
+			"gather",
+			"tf",
+			"threshold",
+			"dim",
+			"axis=1",
+			"keepdims",
+			"reduce_mean",
+			"pred",
+			"xyz",
+			"gradient1",
+			"grad_2",
+			"requires_grad_1",
+			"save_",
+			"xyz,",
+			"xyz",
+			"result.data<float>",
+			"atomic",
+			"sampling_cuda",
+			"gather_points_forward",
+			"gather_forward",
+			"temp",
+			"n_blocks",
+			"const",
+			"idx2",
+			"const int * ",
+			"const int *",
+			"const float",
+			"dim3(32,16,1)",
+			"16",
+			"BufferSize",
+			"idxs",
+			"dataset",
+			"b, n_threads",
+			"__update",
+			"GatherOperation",
+			"Operation",
+			"atomicAdd",
+			"atomicA",
+			"float",
+			"const float",
+			"at:Tensor"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1250,6 +1452,13 @@
 		"regex": false,
 		"replace_history":
 		[
+			"data<scalar_t>",
+			"idx",
+			"input",
+			"idx",
+			"float",
+			"int32_t",
+			"float"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -1271,32 +1480,323 @@
 			[
 				{
 					"buffer": 0,
+					"file": "dense_interlevelplus.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 15,
+						"buffer_size": 6173,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								15,
-								15
+								6172,
+								6172
 							]
 						],
 						"settings":
 						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": ".",
+									"selector": "source.python - string - comment - constant.numeric"
+								},
+								{
+									"characters": ".",
+									"selector": "source.python - string - constant.numeric"
+								},
+								{
+									"characters": ".",
+									"selector": "source.python - string - constant.numeric"
+								}
+							],
 							"auto_name": "import pytorch",
-							"default_dir": "/home/ywang/Documents/points/point-upsampling/3PU/code",
-							"git_gutter_is_enabled": false,
-							"syntax": "Packages/Text/Plain text.tmLanguage"
+							"git_gutter_is_enabled": true,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1932.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "layers.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5135,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4349,
+								4349
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544800527.59,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2004.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "operations.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 11593,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6231,
+								6231
+							]
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": ".",
+									"selector": "source.python - string - comment - constant.numeric"
+								},
+								{
+									"characters": ".",
+									"selector": "source.python - string - constant.numeric"
+								}
+							],
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544705392.02,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2991.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "sampling/sampling_cuda.cu",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8801,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1259,
+								1259
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544785360.14,
+							"syntax": "Packages/CUDA C++/cuda-c++.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "losses/nmdistance.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2009,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								76,
+								76
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544626027.97,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "sampling/sampling.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1938,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544717535.72,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "losses/setup.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 399,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								236,
+								236
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544632371.44,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "losses/cuda_utils.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 623,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								420,
+								420
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544605249.4,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "utils/pc_utils.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10853,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								106,
+								106
+							]
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": ".",
+									"selector": "source.python - string - comment - constant.numeric"
+								},
+								{
+									"characters": ".",
+									"selector": "source.python - string - constant.numeric"
+								}
+							],
+							"git_gutter_is_enabled": true,
+							"markdonw_live_preview_last_run": 1544520528.82,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 70.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
 					"type": "text"
 				}
 			]
@@ -1304,7 +1804,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 32.0
+		"height": 44.0
 	},
 	"input":
 	{
@@ -1361,11 +1861,15 @@
 	{
 		"height": 0.0
 	},
+	"output.unsaved_changes":
+	{
+		"height": 156.0
+	},
 	"pinned_build_system": "",
 	"project": "",
 	"replace":
 	{
-		"height": 60.0
+		"height": 80.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1374,6 +1878,110 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"layer",
+				"layers.py"
+			],
+			[
+				"nnd",
+				"losses/nmdistance_cuda.cu"
+			],
+			[
+				"oper",
+				"operations.py"
+			],
+			[
+				"loss",
+				"model_loss.py"
+			],
+			[
+				"modell",
+				"model_loss.py"
+			],
+			[
+				"sampl",
+				"sampling/sampling_cuda.cu"
+			],
+			[
+				"cu",
+				"sampling/sampling_cuda.cu"
+			],
+			[
+				"samplingcpp",
+				"sampling/sampling.cpp"
+			],
+			[
+				"samplin",
+				"sampling/sampling_cuda.cu"
+			],
+			[
+				"mou",
+				"model_utils.py"
+			],
+			[
+				"setup",
+				"losses/setup.py"
+			],
+			[
+				"nmd",
+				"losses/nmdistance.cpp"
+			],
+			[
+				"nn",
+				"losses/nmdistance.cpp"
+			],
+			[
+				"modu",
+				"model_utils.py"
+			],
+			[
+				"nmin",
+				"losses/nmdistance_cuda.cu"
+			],
+			[
+				"nm",
+				"losses/nmdistance.cpp"
+			],
+			[
+				"nndi",
+				"losses/nndistance_cuda.cu"
+			],
+			[
+				"set",
+				"sampling/setup.py"
+			],
+			[
+				"nncu",
+				"losses/nndistance_cuda.cu"
+			],
+			[
+				"sam",
+				"sampling/sampling.cpp"
+			],
+			[
+				"samplcu",
+				"sampling/sampling_cuda.cu"
+			],
+			[
+				"pcu",
+				"utils/pc_util.py"
+			],
+			[
+				"modeu",
+				"model_utils.py"
+			],
+			[
+				"fur",
+				"furthest_sampling/furthest_sampling_cuda.cu"
+			],
+			[
+				"furth",
+				"furthest_sampling/furthest_sampling.cpp"
+			],
+			[
+				"fut",
+				"furthest_sampling/furthest_sampling.cpp"
+			],
 			[
 				"mis",
 				"code/utils/misc.py"
@@ -1607,10 +2215,6 @@
 				"code/add_noise.py"
 			],
 			[
-				"pcu",
-				"code/utils/pc_util.py"
-			],
-			[
 				"curi",
 				"code/main_curriculum_interleave.py"
 			],
@@ -1785,106 +2389,6 @@
 			[
 				"int",
 				"main_curriculum_interleave.py"
-			],
-			[
-				"lot",
-				"plot_results.py"
-			],
-			[
-				"inter",
-				"main_curriculum_interleave.py"
-			],
-			[
-				"plotre",
-				"plot_results.py"
-			],
-			[
-				"dataprov",
-				"curriculumn_data_provider3.py"
-			],
-			[
-				"maincur",
-				"main_curriculum.py"
-			],
-			[
-				"main interl",
-				"main_curriculum_interleave.py"
-			],
-			[
-				"dense semiinter",
-				"dense_semi_edgeconv_interlevel_interleave.py"
-			],
-			[
-				"dense interleve",
-				"dense_edgeconv_interlevel_interleave.py"
-			],
-			[
-				"densee",
-				"dense_edgeconv_interleave.py"
-			],
-			[
-				"dense semiinterlev",
-				"dense_semi_edgeconv_interlevel_interleave.py"
-			],
-			[
-				"datp",
-				"curriculumn_data_provider2.py"
-			],
-			[
-				"dens semi",
-				"dense_semi_edgeconv_interleave.py"
-			],
-			[
-				"semiden",
-				"semi_edgeconv_interleave.py"
-			],
-			[
-				"semi",
-				"semi_edgeconv_interleave.py"
-			],
-			[
-				"dense_edgeconv_interleave",
-				"dense_edgeconv_interleave.py"
-			],
-			[
-				"datapriv",
-				"curriculumn_data_provider3.py"
-			],
-			[
-				"half",
-				"model_microscpe_half_interleave.py"
-			],
-			[
-				"halfin",
-				"model_microscpe_half_interleave.py"
-			],
-			[
-				"dense semi",
-				"dense_semi_edgeconv_interleave.py"
-			],
-			[
-				"group",
-				"tf_ops/grouping/tf_grouping.py"
-			],
-			[
-				"proiv",
-				"curriculumn_data_provider3.py"
-			],
-			[
-				"nndis",
-				"tf_ops/CD/tf_nndistance_g.cu"
-			],
-			[
-				"provi2",
-				"curriculumn_data_provider2.py"
-			],
-			[
-				"mainjoi",
-				"main_curriculum_joint.py"
-			],
-			[
-				"rpvi3",
-				"curriculumn_data_provider3.py"
 			]
 		],
 		"width": 0.0
@@ -1919,7 +2423,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 327.0,
+	"side_bar_width": 479.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

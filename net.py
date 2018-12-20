@@ -18,7 +18,7 @@ class Net(torch.nn.Module):
         self.growth_rate = growth_rate
         self.dense_n = dense_n
         self.fm_knn = fm_knn
-        self.num_levels = log(max_up_ratio, step_ratio)
+        self.num_levels = int(log(max_up_ratio, step_ratio))
         self.levels = torch.nn.ModuleDict()
         self.max_num_point = max_num_point
         for l in range(self.num_levels):
@@ -27,7 +27,7 @@ class Net(torch.nn.Module):
 
     def extract_xyz_feature_patch(self, batch_xyz, k, batch_features=None, gt_xyz=None, gt_k=None):
         """
-        extract patches via KNN from input point sets and 
+        extract patches via KNN from input point sets and
         their corresponding features and ground truth patches
         :param
             batch_xyz: Bx3xN

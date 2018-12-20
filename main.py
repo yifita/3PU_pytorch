@@ -57,6 +57,7 @@ parser.add_argument('--block_n', type=int, default=3,
 parser.add_argument('--fm_knn', type=int, default=5,
                     help="number of neighboring points for feature matching")
 
+parser.add_argument('--growth_rate', type=int, default=12, help='dense block growth rate')
 parser.add_argument('--cd_threshold', default=2.0,
                     type=float, help="threshold for cd")
 parser.add_argument('--fidelity_weight', default=50.0,
@@ -69,7 +70,7 @@ ROOT_DIR = FLAGS.root_dir
 MODEL_DIR = os.path.join(FLAGS.log_dir, FLAGS.id)
 ASSIGN_MODEL_PATH = FLAGS.restore
 
-NUM_POINT = FLAGS.num_point or int(FLAGS.num_shape_point * FLAGS.drop_out)
+# NUM_POINT = FLAGS.num_point or int(FLAGS.num_shape_point * FLAGS.drop_out)
 
 BATCH_SIZE = FLAGS.batch_size
 MAX_EPOCH = FLAGS.max_epoch
