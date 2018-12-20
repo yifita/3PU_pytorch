@@ -1,23 +1,26 @@
 import torch
 import torch.nn as nn
-from model_utils import group_knn
+from operations import group_knn
 
 
 class DenseEdgeConv(nn.Module):
     """docstring for EdgeConv"""
+
     def __init__(self, in_channels, growth_rate, n, k, **kwargs):
         super(DenseEdgeConv, self).__init__()
         self.growth_rate = growth_rate
         self.n = n
         self.k = k
         self.mlps = torch.nn.ModuleList()
-        self.mlps.append(torch.nn.Conv2d(2*in_channels, growth_rate, 1, bias=True))
+        self.mlps.append(torch.nn.Conv2d(
+            2*in_channels, growth_rate, 1, bias=True))
         for i in range(1, n):
             in_channels = growth_rate*i + in_channels
-            self.mlps.append(torch.nn.Conv2d(in_channels, growth_rate, 1, bias=True))
+            self.mlps.append(torch.nn.Conv2d(
+                in_channels, growth_rate, 1, bias=True))
 
     def get_local_graph(self, x, k, idx=None):
-        """Construct edge feature for each point
+        """Construct edge feature [x, NN_i - x] for each point x
         :param
             x: (B, C, N)
             k: int
@@ -27,7 +30,7 @@ class DenseEdgeConv(nn.Module):
         """
         if idx is None:
             # BCN(K+1), BN(K+1)
-            knn_point, idx, _ = group_knn(k+1, x, x, unique=True, sort=True)
+            knn_point, idx, _ = group_knn(k+1, x, x, unique=True)
             idx = idx[:, :, :, 1:]
             knn_point = knn_point[:, :, :, 1:]
 
@@ -59,8 +62,9 @@ class DenseEdgeConv(nn.Module):
 
 class Conv2d(nn.Module):
     """2dconvolution with custom normalization and activation"""
+
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True,
-            activation=None, normalization=None, momentum=0.01):
+                 activation=None, normalization=None, momentum=0.01):
         super(Conv2d, self).__init__()
         self.activation = activation
         self.normalization = normalization
@@ -70,11 +74,14 @@ class Conv2d(nn.Module):
 
         if normalization is not None:
             if self.normalization == 'batch':
-                self.norm = nn.BatchNorm2d(out_channels, affine=True, eps=0.001, momentum=momentum)
+                self.norm = nn.BatchNorm2d(
+                    out_channels, affine=True, eps=0.001, momentum=momentum)
             elif self.normalization == 'instance':
-                self.norm = nn.InstanceNorm2d(out_channels, affine=True, eps=0.001, momentum=momentum)
+                self.norm = nn.InstanceNorm2d(
+                    out_channels, affine=True, eps=0.001, momentum=momentum)
             else:
-                raise ValueError("only \"batch/instance\" normalization permitted.")
+                raise ValueError(
+                    "only \"batch/instance\" normalization permitted.")
 
         # activation
         if activation is not None:
@@ -101,9 +108,10 @@ class Conv2d(nn.Module):
 
 class Conv1d(nn.Module):
     """1dconvolution with custom normalization and activation"""
+
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True,
-            activation=None, normalization=None, momentum=0.01):
-        super(Conv2d, self).__init__()
+                 activation=None, normalization=None, momentum=0.01):
+        super(Conv1d, self).__init__()
         self.activation = activation
         self.normalization = normalization
         bias = not normalization and bias
@@ -112,11 +120,14 @@ class Conv1d(nn.Module):
 
         if normalization is not None:
             if self.normalization == 'batch':
-                self.norm = nn.BatchNorm1d(out_channels, affine=True, eps=0.001, momentum=momentum)
+                self.norm = nn.BatchNorm1d(
+                    out_channels, affine=True, eps=0.001, momentum=momentum)
             elif self.normalization == 'instance':
-                self.norm = nn.InstanceNorm1d(out_channels, affine=True, eps=0.001, momentum=momentum)
+                self.norm = nn.InstanceNorm1d(
+                    out_channels, affine=True, eps=0.001, momentum=momentum)
             else:
-                raise ValueError("only \"batch/instance\" normalization permitted.")
+                raise ValueError(
+                    "only \"batch/instance\" normalization permitted.")
 
         # activation
         if activation is not None:

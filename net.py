@@ -9,17 +9,11 @@ import operations
 class Net(torch.nn.Module):
     """3PU inter-level plus skip connection and dense layers"""
 
-    def __init__(self, bradius=1.0,
-                 max_up_ratio=16,
-                 step_ratio=2, no_res=False,
-                 knn=16, growth_rate=12, dense_n=3,
-                 max_num_point=312,
-                 fm_knn=3, **kwargs):
+    def __init__(self, max_up_ratio=16, step_ratio=2, knn=16, growth_rate=12,
+                 dense_n=3, max_num_point=312, fm_knn=3, **kwargs):
         super(Net, self).__init__()
-        self.bradius = bradius
         self.max_up_ratio = max_up_ratio
         self.step_ratio = step_ratio
-        self.no_res = no_res
         self.knn = knn
         self.growth_rate = growth_rate
         self.dense_n = dense_n
@@ -33,7 +27,8 @@ class Net(torch.nn.Module):
 
     def extract_xyz_feature_patch(self, batch_xyz, k, batch_features=None, gt_xyz=None, gt_k=None):
         """
-        extract a single patch via from input xyz and also return their corresponding features
+        extract patches via KNN from input point sets and 
+        their corresponding features and ground truth patches
         :param
             batch_xyz: Bx3xN
             k patch:   size
@@ -105,27 +100,38 @@ class Net(torch.nn.Module):
         for l in range(num_levels):
             curr_ratio = self.step_ratio ** (l + 1)
             # extract input to patches
-            if l > 0 and xyz.size(-1) > max_num_point:
-                gt_k = max_num_point * ratio // curr_ratio * self.step_ratio
-                # patches of xyz and feature, but unnormalized
-                patch_xyz, _, gt = self.extract_xyz_feature_patch(
-                    xyz, max_num_point, batch_features=None, gt_k=gt_k, gt_xyz=gt)
-            # Bx3x(N*r) and BxCx(N*r)
-            patch_xyz, l4_features, batch_radius = self.levels['level_%d' % l](
-                patch_xyz, gt)
-            # merge patches in testing
-            if not self.training and (patch_xyz.shape[0] != batch_size) and l > 0:
-                if not self.training:
-                    patch_xyz = torch.cat(
+            if l > 0:
+                if xyz.size(-1) > max_num_point:
+                    gt_k = max_num_point * ratio // curr_ratio * self.step_ratio
+                    # patches of xyz and feature, but unnormalized
+                    patch_xyz, _, gt = self.extract_xyz_feature_patch(
+                        xyz, max_num_point, batch_features=None, gt_k=gt_k, gt_xyz=gt)
+                    old_xyz = torch.cat(
+                        torch.split(patch_xyz, batch_size, dim=0), dim=2)
+                else:
+                    old_xyz = patch_xyz = xyz
+
+                # Bx3x(N*r) and BxCx(N*r)
+                patch_xyz, old_features, batch_radius = self.levels['level_%d' % l](
+                    patch_xyz, previous_level4=(old_xyz, old_features))
+                # merge patches in testing
+                if not self.training and (patch_xyz.shape[0] != batch_size):
+                    xyz = torch.cat(
                         torch.split(patch_xyz, batch_size, dim=0), dim=2)
                     num_output_point = num_point*self.step_ratio
                     # resample to get sparser points idx [B, P, 1]
                     idx, xyz = operations.furthest_point_sample(
-                        num_output_point, patch_xyz)
+                        num_output_point, xyz)
             else:
-                xyz = patch_xyz
+                # Bx3x(N*r) and BxCx(N*r)
+                old_xyz = xyz
+                xyz, old_features, batch_radius = self.levels['level_%d' % l](
+                    xyz, previous_level4=None)
 
-            return xyz, batch_radius
+        if self.training:
+            return xyz, batch_radius, gt
+        else:
+            return xyz
 
 
 class Level(torch.nn.Module):
@@ -208,7 +214,7 @@ class Level(torch.nn.Module):
                               num_grid_point).view(1, num_grid_point)
         return grid
 
-    def forward(self, xyz, previous_level4=None, gt=None):
+    def forward(self, xyz, previous_level4=None):
         """
         :param
             xyz             Bx3xN input xyz, unnormalized
