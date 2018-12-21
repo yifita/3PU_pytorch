@@ -1,10 +1,16 @@
-import torch
 import argparse
 import os
 import time
 import numpy as np
+from glob import glob
+
+import torch
 
 from net import Net
+from model import Model
+from utils import pc_utils
+from misc import logger
+import operations
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--phase', default='test',
@@ -18,7 +24,7 @@ parser.add_argument('--model', default='model_microscope', help='model name')
 parser.add_argument('--root_dir', default='../',
                     help='project root, data and h5_data diretories')
 parser.add_argument('--result_dir', help='result directory')
-parser.add_argument('--restore', help='model to restore from')
+parser.add_argument('--ckpt', help='model to restore from')
 parser.add_argument('--num_point', type=int,
                     help='Point Number [1024/2048] [default: 1024]')
 parser.add_argument('--num_shape_point', type=int,
@@ -66,22 +72,26 @@ parser.add_argument('--fidelity_weight', default=50.0,
 
 FLAGS = parser.parse_args()
 PHASE = FLAGS.phase
-GPU_INDEX = FLAGS.gpu
+DEVICE = torch.devide('cuda', FLAGS.gpu)
 ROOT_DIR = FLAGS.root_dir
 MODEL_DIR = os.path.join(FLAGS.log_dir, FLAGS.id)
-ASSIGN_MODEL_PATH = FLAGS.restore
+CKPT = FLAGS.ckpt
 
-# NUM_POINT = FLAGS.num_point or int(FLAGS.num_shape_point * FLAGS.drop_out)
+NUM_SHAPE_POINT = FLAGS.num_shape_point
+NUM_POINT = FLAGS.num_point
+assert(NUM_SHAPE_POINT is not None or NUM_POINT is not None)
+NUM_POINT = NUM_POINT or int(NUM_SHAPE_POINT * FLAGS.drop_out)
 
 BATCH_SIZE = FLAGS.batch_size
 MAX_EPOCH = FLAGS.max_epoch
 BASE_LEARNING_RATE = FLAGS.learning_rate
 JITTER = FLAGS.jitter
+JITTER_MAX = FLAGS.jitter_max
+JITTER_SIGMA = FLAGS.jitter_sigma
 STAGE_STEPS = FLAGS.stage_steps
 
 STEP_RATIO = FLAGS.step_ratio
 RESTORE_EPOCH = FLAGS.restore_epoch
-NUM_SHAPE_POINT = FLAGS.num_shape_point
 FM_KNN = FLAGS.fm_knn
 KNN = FLAGS.knn
 GROWTH_RATE = FLAGS.growth_rate
@@ -95,19 +105,108 @@ TEST_DATA = FLAGS.test_data
 PATCH_NUM_RATIO = FLAGS.patch_num_ratio
 
 
+# build model
 net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
           knn=KNN, growth_rate=GROWTH_RATE, dense_n=DENSE_N, fm_knn=FM_KNN)
 
-states = np.load("final_poisson.npy").item()
-for k in states:
-    states[k] = torch.from_numpy(states[k])
-    if states[k].dim() == 3 and "weight" in k:
-        states[k] = states[k].permute(2,1,0)
-    elif states[k].dim() == 4 and "weight" in k:
-        states[k] = states[k].permute(3, 2, 1, 0)
-print(net)
-for k, v in net.state_dict().items():
-    print(k, v.size())
 
-net.load_state_dict(states, strict=False)
+def patch_prediction(point, up_ratio):
+    pass
 
+
+def pc_prediction(net, input_pc, patch_num_ratio=3):
+    """
+    upsample patches of a point cloud
+    :param
+        input_pc        3xN
+        patch_num_ratio int, impacts number of patches and overlapping
+    """
+    # divide to patches
+    num_patches = int(input_pc.shape[0] / NUM_POINT * patch_num_ratio)
+    input_pc = input_pc[np.newaxis, ...]
+    # FPS sampling
+    start = time.time()
+    _, seeds = operations.furthest_point_sample(input_pc, num_patches)
+    print("number of patches: %d" % seeds.shape[1])
+    input_list = []
+    up_point_list = []
+
+    patches = operations.group_knn(
+        seeds, input_pc, NUM_POINT)
+    for point in tqdm(patches, total=len(patches)):
+        up_point = patch_prediction(point, UP_RATIO)
+        input_list.append(point)
+        up_point_list.append(up_point)
+
+    return input_list, up_point_list
+
+
+def test(save_path):
+    """
+    upsample a point cloud
+    """
+    net.to(DEVICE)
+    net.eval()
+    test_files = glob(TEST_DATA, recursive=True)
+    for point_path in test_files:
+        data = pc_utils.read_ply(point_path, NUM_SHAPE_POINT)
+        num_shape_point = data.shape[0] * FLAGS.drop_out
+        data, centroid, furthest_distance = pc_utils.normalize_point_cloud(
+            data)
+        is_2D = np.all(data[:, 2] == 0)
+        if FLAGS.drop_out < 1:
+            _, data = operations.furthest_point_sample(
+                data[np.newaxis, ...], int(num_shape_point))[0]
+        if JITTER:
+            data = pc_utils.jitter_perturbation_point_cloud(
+                data[np.newaxis, ...], sigma=FLAGS.jitter_sigma, clip=FLAGS.jitter_max, is_2D=is_2D)[0, ...]
+
+        # transpose to NCHW format
+        data = torch.from_numpy(data).transpose(1, 0).to(device=DEVICE)
+        # get the edge information
+        logger.info(os.path.basename(point_path))
+        start = time.time()
+        with torch.no_grad():
+            pred_list = pc_prediction(
+                net, data, patch_num_ratio=PATCH_NUM_RATIO)
+        end = time.time()
+        print("total time: ", end-start)
+        pred_pc = np.concatenate(pred_list, axis=0)
+        pred_pc = (pred_pc * furthest_distance) + centroid
+        data = (data * furthest_distance) + centroid
+        folder = os.path.basename(os.path.dirname(point_path))
+        path = os.path.join(save_path, folder,
+                            point_path.split('/')[-1][:-4]+'.ply')
+
+        pc_utils.save_ply(data, path[:-4]+'_input.ply')
+        _, pred_pc = operations.furthest_point_sample(
+            pred_pc[np.newaxis, ...], int(num_shape_point)*UP_RATIO)
+        pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
+
+
+if __name__ == "__main__":
+    append_name = []
+    if NUM_POINT is None:
+        append_name += ["pWhole"]
+    else:
+        append_name += ["p%d" % NUM_POINT]
+    if NUM_SHAPE_POINT is None:
+        append_name += ["sWhole"]
+    else:
+        append_name += ["s%d" % NUM_SHAPE_POINT]
+
+    if JITTER:
+        append_name += ["s{}".format("{:.4f}".format(
+            FLAGS.jitter_sigma).replace(".", ""))]
+    else:
+        append_name += ["clean"]
+
+    if FLAGS.drop_out < 1:
+        append_name += ["d{}".format(
+            "{:.2f}".format(FLAGS.drop_out).replace(".", ""))]
+
+    result_path = FLAGS.result_dir or os.path.join(
+        MODEL_DIR, 'result', 'x%d' % (UP_RATIO), "_".join(append_name))
+    if PHASE == "test":
+        assert(CKPT is not None)
+        test(save_path)

@@ -24,69 +24,73 @@ class Net(torch.nn.Module):
         for l in range(self.num_levels):
             self.levels['level_%d' % l] = Level(
                 dense_n=dense_n, growth_rate=growth_rate, knn=knn, step_ratio=step_ratio)
+        if self.training:
+            for m in self.modules():
+                if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv1d)):
+                    torch.nn.init.xavier_normal_(m.weight)
+                    torch.nn.init.zeros_(m.bias)
+                elif isinstance(m, torch.nn._BatchNorm):
+                    torch.nn.init.zeros_(m.bias)
+                    torch.nn.init.ones_(m.weight)
 
-    def extract_xyz_feature_patch(self, batch_xyz, k, batch_features=None, gt_xyz=None, gt_k=None):
+    def extract_xyz_feature_patch(self, batch_xyz, k, gt_xyz=None, gt_k=None):
         """
         extract patches via KNN from input point sets and
         their corresponding features and ground truth patches
         :param
             batch_xyz: Bx3xN
-            k patch:   size
+            k:         patch size
             gt_xyz:    Bx3xM
             gt_k:      size of ground truth patch
+        :return
+            batch_xyz  MBx3xK   
+            gt_xyz:    M'Bx3xK  ground truth patch
         """
         batch_size, _, num_point = batch_xyz.shape.as_list()
         if self.training:
+            # randomly choose a point as the seed for KNN extraction
             patch_num = 1
             seed_idx = torch.randint(low=0, high=num_point, size=[batch_size, patch_num], dtype=torch.int32,
                                      layout=torch.strided, device=batch_xyz.device)
+            # Bx3xM M=1
+            batch_seed_point = operations.gather_points(batch_xyz, seed_idx)
         else:
+            # sample uniform KNN seeds
             assert(batch_size == 1)
-            # remove residual
+            # distance to the closest neighbor, if too large, consider as an outlier
             _, _, closest_d = operations.group_knn(
-                2, batch_xyz, batch_xyz, unique=False)
-            # BxN
+                2, batch_xyz, batch_xyz, unique=False, NCHW=True)
+            # BxN closest distance
             closest_d = closest_d[:, :, 1]
-            # BxN, points whose NN is within a threshold Bx1
+            # BxN, points whose NN is within a threshold (Bx1)
             mask = closest_d < 5*(torch.mean(closest_d, dim=1, keepdim=True))
-            # Bx1xN
+            # BxCxN
             mask = torch.unsqueeze(mask, dim=1).expand_as(batch_xyz)
-            # filter (B, P', 3)
+            # filter (B, 3，N')
             batch_xyz = torch.masked_select(
-                batch_xyz, mask).view(batch_size, 3, num_point)
-            patch_num = int(num_point / k * 3)
-            batch_xyz_transposed = batch_xyz.transpose(2, 1).contiguous()
-            idx = operations.furthest_point_sample(
-                batch_xyz_transposed, patch_num)
-            batch_seed_point = operations.gather_points(batch_xyz, idx)
-            k = torch.min([k, num_point])
+                batch_xyz, mask).view(1, 3, -1)
 
-        # Bx3xM M=patch_num
-        batch_seed_point = operations.gather_points(batch_xyz, seed_idx)
+            num_point = batch_xyz.size(2)
+            patch_num = int(num_point / k * 3)
+            # Bx3xpatch_num
+            _, batch_seed_point = operations.furthest_point_sample(
+                batch_xyz, patch_num)
+            k = min(k, num_point)
+
         # Bx3xMxK, BxMxK
         batch_xyz, new_patch_idx, _ = operations.group_knn(
-            k, batch_xyz, batch_seed_point, unique=False, NCHW=True)
+            k, batch_seed_point, batch_xyz, unique=False, NCHW=True)
         # MBx3xK
         batch_xyz = torch.cat(torch.unbind(batch_xyz, dim=2), dim=0)
-        if batch_features is not None:
-            # BxCxMxN
-            batch_features = torch.unsqueeze(
-                batch_features, dim=2).expand(patch_num)
-            new_patch_idx = new_patch_idx.unsqueeze(dim=1).expand(
-                (-1, batch_features.size(1), -1, -1))  # B, C, M, K
-            batch_features = torch.gather(batch_features, 3, new_patch_idx)
-            # MBxCxK
-            batch_features = torch.cat(
-                torch.unbind(batch_features, dim=2), dim=0)
 
         if gt_xyz is not None and gt_k is not None:
-            gt_xyz, _ = operations.group_knn(
-                gt_k, gt_xyz, batch_seed_point, unique=False)
+            gt_xyz, _, _ = operations.group_knn(
+                gt_k, batch_seed_point, gt_xyz, unique=False)
             gt_xyz = torch.cat(torch.unbind(gt_xyz, dim=2), dim=0)
         else:
             gt_xyz = None
 
-        return batch_xyz, batch_features, gt_xyz
+        return batch_xyz, gt_xyz
 
     def forward(self, xyz, batch_radius, ratio=None, gt=None):
         ratio = ratio or self.max_up_ratio
@@ -99,13 +103,13 @@ class Net(torch.nn.Module):
 
         for l in range(num_levels):
             curr_ratio = self.step_ratio ** (l + 1)
-            # extract input to patches
             if l > 0:
+                # extract input to patches
                 if xyz.size(-1) > max_num_point:
                     gt_k = max_num_point * ratio // curr_ratio * self.step_ratio
                     # patches of xyz and feature, but unnormalized
                     patch_xyz, _, gt = self.extract_xyz_feature_patch(
-                        xyz, max_num_point, batch_features=None, gt_k=gt_k, gt_xyz=gt)
+                        xyz, max_num_point, gt_k=gt_k, gt_xyz=gt)
                     old_xyz = torch.cat(
                         torch.split(patch_xyz, batch_size, dim=0), dim=2)
                 else:
@@ -120,8 +124,8 @@ class Net(torch.nn.Module):
                         torch.split(patch_xyz, batch_size, dim=0), dim=2)
                     num_output_point = num_point*self.step_ratio
                     # resample to get sparser points idx [B, P, 1]
-                    idx, xyz = operations.furthest_point_sample(
-                        num_output_point, xyz)
+                    _, xyz = operations.furthest_point_sample(
+                        xyz, num_output_point)
             else:
                 # Bx3x(N*r) and BxCx(N*r)
                 old_xyz = xyz

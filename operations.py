@@ -76,9 +76,8 @@ class KNN(torch.autograd.Function):
         :param k: k in KNN
                query: BxMxC
                points: BxNxC
-               trans: swap last two axis BxMxC
         :return:
-            neighbors_points: BxCxMxK
+            neighbors_points: BxMxK
             index_batch: BxMxK
         """
         # selected_gt: BxkxCxM
@@ -86,36 +85,57 @@ class KNN(torch.autograd.Function):
         index_batch = []
         distance_batch = []
         for i in range(points.shape[0]):
-            # index = self.build_nn_index(points_trans[i])
-            # database is gt_pc, predict_pc -> gt_pc -----------------------------------------------------------
-            # _, I_var = search_index_pytorch(index, query_trans[i], k)
             D_var, I_var = search_index_pytorch(points[i], query[i], k)
             GPU_RES.syncDefaultStreamCurrentDevice()
             index_batch.append(I_var)  # M, k
             distance_batch.append(D_var)  # M, k
 
-        index_batch = torch.stack(index_batch, dim=0)  # B, M, K
+        # B, M, K
+        index_batch = torch.stack(index_batch, dim=0)
         distance_batch = torch.stack(distance_batch, dim=0)
         ctx.mark_non_differentiable(index_batch, distance_batch)
         return index_batch, distance_batch
 
 
 def group_knn(k, query, points, unique=True, NCHW=True):
-    batch_size, channels, num_points = points.size()
+    """
+    group batch of points to neighborhoods
+    :param
+        k: neighborhood size
+        query: BxCxM or BxMxC
+        points: BxCxN or BxNxC
+        unique: neighborhood contains *unique* points
+        NCHW: if true, the second dimension is the channel dimension
+    :return
+        neighbor_points BxCxMxk (if NCHW) or BxMxkxC (otherwise)
+        index_batch     BxMxk
+        distance_batch  BxMxk
+    """
     if NCHW:
+        batch_size, channels, num_points = points.size()
         points_trans = points.transpose(2, 1).contiguous()
         query_trans = query.transpose(2, 1).contiguous()
     else:
         points_trans = points.contiguous()
         query_trans = query.contiguous()
 
+    batch_size, num_points, _ = points_trans.size()
+    assert(num_points >= query.size(1)
+           ), "points size must be greater or equal to query size"
+    # BxMxk
     index_batch, distance_batch = KNN.apply(k, query_trans, points_trans)
-    points_expanded = points.unsqueeze(dim=2).expand(
-        (-1, -1, query.size(2), -1))  # B, C, M, N
-    index_batch_expanded = index_batch.unsqueeze(dim=1).expand(
-        (-1, points.size(1), -1, -1))  # B, C, M, k
-    neighbor_points = torch.gather(points_expanded, 3, index_batch_expanded)
+    # BxNxC -> BxMxNxC
+    points_expanded = points_trans.unsqueeze(dim=1).expand(
+        (-1, query.size(2), -1, -1))
+    # BxMxk -> BxMxkxC
+    index_batch_expanded = index_batch.unsqueeze(dim=-1).expand(
+        (-1, -1, -1, points_trans.size(-1)))
+    # BxMxkxC
+    neighbor_points = torch.gather(points_expanded, 2, index_batch_expanded)
     index_batch = index_batch
+    if NCHW:
+        # BxCxMxk
+        neighbor_points = neighbor_points.permute(0, 3, 1, 2).contiguous()
     return neighbor_points, index_batch, distance_batch
 
 
