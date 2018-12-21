@@ -57,7 +57,8 @@ parser.add_argument('--block_n', type=int, default=3,
 parser.add_argument('--fm_knn', type=int, default=5,
                     help="number of neighboring points for feature matching")
 
-parser.add_argument('--growth_rate', type=int, default=12, help='dense block growth rate')
+parser.add_argument('--growth_rate', type=int, default=12,
+                    help='dense block growth rate')
 parser.add_argument('--cd_threshold', default=2.0,
                     type=float, help="threshold for cd")
 parser.add_argument('--fidelity_weight', default=50.0,
@@ -97,4 +98,5 @@ PATCH_NUM_RATIO = FLAGS.patch_num_ratio
 net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
           knn=KNN, growth_rate=GROWTH_RATE, dense_n=DENSE_N, fm_knn=FM_KNN)
 
-print(net)
+states = np.load("final_poisson.npy").item()
+net.load_state_dict(states, strict=False)
