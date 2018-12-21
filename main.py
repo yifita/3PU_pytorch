@@ -99,4 +99,15 @@ net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
           knn=KNN, growth_rate=GROWTH_RATE, dense_n=DENSE_N, fm_knn=FM_KNN)
 
 states = np.load("final_poisson.npy").item()
+for k in states:
+    states[k] = torch.from_numpy(states[k])
+    if states[k].dim() == 3 and "weight" in k:
+        states[k] = states[k].permute(2,1,0)
+    elif states[k].dim() == 4 and "weight" in k:
+        states[k] = states[k].permute(3, 2, 1, 0)
+print(net)
+for k, v in net.state_dict().items():
+    print(k, v.size())
+
 net.load_state_dict(states, strict=False)
+

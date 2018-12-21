@@ -15,7 +15,7 @@ class DenseEdgeConv(nn.Module):
         self.mlps.append(torch.nn.Conv2d(
             2*in_channels, growth_rate, 1, bias=True))
         for i in range(1, n):
-            in_channels = growth_rate*i + in_channels
+            in_channels += growth_rate
             self.mlps.append(torch.nn.Conv2d(
                 in_channels, growth_rate, 1, bias=True))
 

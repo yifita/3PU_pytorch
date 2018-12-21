@@ -23,7 +23,7 @@ class Net(torch.nn.Module):
         self.max_num_point = max_num_point
         for l in range(self.num_levels):
             self.levels['level_%d' % l] = Level(
-                dense_n=dense_n, growth_rate=growth_rate, knn=knn)
+                dense_n=dense_n, growth_rate=growth_rate, knn=knn, step_ratio=step_ratio)
 
     def extract_xyz_feature_patch(self, batch_xyz, k, batch_features=None, gt_xyz=None, gt_k=None):
         """
