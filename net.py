@@ -92,7 +92,17 @@ class Net(torch.nn.Module):
 
         return batch_xyz, gt_xyz
 
-    def forward(self, xyz, batch_radius, ratio=None, gt=None):
+    def forward(self, xyz, ratio=None, gt=None, **kwargs):
+        """
+        :param
+            xyz     Bx3xN
+            ratio   upscaling factor (integer)
+            gt      Bx3x(max_up_ratio*N)
+        :return
+            xyz     Bx3x(ratio*N)
+            (during training:)
+            gt      Bx3x(ratio*N)
+        """
         ratio = ratio or self.max_up_ratio
         if self.training:
             assert(gt is not None)
@@ -116,7 +126,7 @@ class Net(torch.nn.Module):
                     old_xyz = patch_xyz = xyz
 
                 # Bx3x(N*r) and BxCx(N*r)
-                patch_xyz, old_features, batch_radius = self.levels['level_%d' % l](
+                patch_xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     patch_xyz, previous_level4=(old_xyz, old_features))
                 # merge patches in testing
                 if not self.training and (patch_xyz.shape[0] != batch_size):
@@ -129,11 +139,11 @@ class Net(torch.nn.Module):
             else:
                 # Bx3x(N*r) and BxCx(N*r)
                 old_xyz = xyz
-                xyz, old_features, batch_radius = self.levels['level_%d' % l](
+                xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     xyz, previous_level4=None)
 
         if self.training:
-            return xyz, batch_radius, gt
+            return xyz, gt
         else:
             return xyz
 
@@ -227,14 +237,14 @@ class Level(torch.nn.Module):
         :return
             xyz             Bx3xNr output xyz, denormalized
             l4_features     BxCxN feature of the input points
-            batch_radius    Bx1   radius of point clouds
+            centroid        Bx3x1 center of point clouds
+            radius          Bx1x1 radius of point clouds
         """
         batch_size, _, num_point = xyz.size()
         # normalize
         xyz_normalized, centroid, radius = operations.normalize_point_batch(
             xyz, NCHW=True)
-        batch_radius = torch.ones(
-            [batch_size], dtype=xyz_normalized.dtype, device=xyz_normalized.device)
+
         x = self.layer0(xyz_normalized.unsqueeze(dim=-1)).squeeze(dim=-1)
         x = torch.cat([self.layer1(x), x], dim=1)
         x = torch.cat([self.layer2(self.layer2_prep(x)), x], dim=1)
@@ -300,5 +310,4 @@ class Level(torch.nn.Module):
             batch_size, -1, num_point*ratio])  # B, N, 4, 3
         # normalize back
         x = (x * radius) + centroid
-        batch_radius = radius
-        return x, point_features, radius
+        return x, point_features, centroid, radius

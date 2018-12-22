@@ -2,6 +2,7 @@ import argparse
 import os
 import time
 import numpy as np
+import tqdm
 from glob import glob
 
 import torch
@@ -110,16 +111,15 @@ net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
           knn=KNN, growth_rate=GROWTH_RATE, dense_n=DENSE_N, fm_knn=FM_KNN)
 
 
-def patch_prediction(point, up_ratio):
-    pass
-
-
 def pc_prediction(net, input_pc, patch_num_ratio=3):
     """
     upsample patches of a point cloud
     :param
         input_pc        3xN
         patch_num_ratio int, impacts number of patches and overlapping
+    :return
+        input_list      list of [3xM]
+        up_point_list   list of [3xMr]
     """
     # divide to patches
     num_patches = int(input_pc.shape[0] / NUM_POINT * patch_num_ratio)
@@ -134,7 +134,7 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
     patches = operations.group_knn(
         seeds, input_pc, NUM_POINT)
     for point in tqdm(patches, total=len(patches)):
-        up_point = patch_prediction(point, UP_RATIO)
+        up_point = net.forward(point, UP_RATIO)
         input_list.append(point)
         up_point_list.append(up_point)
 
@@ -151,6 +151,7 @@ def test(save_path):
     for point_path in test_files:
         data = pc_utils.read_ply(point_path, NUM_SHAPE_POINT)
         num_shape_point = data.shape[0] * FLAGS.drop_out
+        # normalize "unnecessarily" to apply noise
         data, centroid, furthest_distance = pc_utils.normalize_point_cloud(
             data)
         is_2D = np.all(data[:, 2] == 0)
@@ -167,7 +168,7 @@ def test(save_path):
         logger.info(os.path.basename(point_path))
         start = time.time()
         with torch.no_grad():
-            pred_list = pc_prediction(
+            input_list, pred_list = pc_prediction(
                 net, data, patch_num_ratio=PATCH_NUM_RATIO)
         end = time.time()
         print("total time: ", end-start)
@@ -209,4 +210,4 @@ if __name__ == "__main__":
         MODEL_DIR, 'result', 'x%d' % (UP_RATIO), "_".join(append_name))
     if PHASE == "test":
         assert(CKPT is not None)
-        test(save_path)
+        test(result_path)

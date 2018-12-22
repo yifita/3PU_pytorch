@@ -8,7 +8,14 @@ from faiss_setup import GPU_RES
 
 def normalize_point_batch(pc, NCHW=True):
     """
-    pc [N, P, 3]
+    normalize a batch of point clouds
+    :param
+        pc      [B, N, 3] or [B, 3, N]
+        NCHW    if True, treat the second dimension as channel dimension
+    :return
+        pc      normalized point clouds, same shape as input
+        centroid [B, 1, 3] or [B, 3, 1] center of point clouds 
+        furthest_distance [B, 1, 1] scale of point clouds
     """
     point_axis = 2 if NCHW else 1
     dim_axis = 1 if NCHW else 2

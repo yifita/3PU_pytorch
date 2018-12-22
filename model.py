@@ -31,7 +31,6 @@ class Model(object):
             label_pc       Bx3xN'
         """
         self.input = input_pc.detach()
-        self.batch_radius = batch_radius.detach()
         self.up_ratio = up_ratio.detach()
         # gt point cloud
         if label_pc:
@@ -41,7 +40,7 @@ class Model(object):
 
     def forward(self):
         self.predicted, self.batch_radius = self.net(
-            self.input, self.batch_radius, ratio=self.up_ratio, gt=self.gt)  # Bx1024 encoded
+            self.input, ratio=self.up_ratio, gt=self.gt)  # Bx1024 encoded
 
     def optimize(self, epoch=None):
         self.optimizer.zero_grad()
