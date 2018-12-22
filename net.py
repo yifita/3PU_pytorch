@@ -21,7 +21,7 @@ class Net(torch.nn.Module):
         self.num_levels = int(log(max_up_ratio, step_ratio))
         self.levels = torch.nn.ModuleDict()
         self.max_num_point = max_num_point
-        for l in range(self.num_levels):
+        for l in range(1, self.num_levels+1):
             self.levels['level_%d' % l] = Level(
                 dense_n=dense_n, growth_rate=growth_rate, knn=knn, step_ratio=step_ratio)
         if self.training:
@@ -29,7 +29,8 @@ class Net(torch.nn.Module):
                 if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv1d)):
                     torch.nn.init.xavier_normal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
-                elif isinstance(m, torch.nn._BatchNorm):
+                elif isinstance(m, (torch.nn.InstanceNorm1d, torch.nn.InstanceNorm2d,
+                        torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
                     torch.nn.init.zeros_(m.bias)
                     torch.nn.init.ones_(m.weight)
 
@@ -43,10 +44,10 @@ class Net(torch.nn.Module):
             gt_xyz:    Bx3xM
             gt_k:      size of ground truth patch
         :return
-            batch_xyz  MBx3xK   
+            batch_xyz  MBx3xK
             gt_xyz:    M'Bx3xK  ground truth patch
         """
-        batch_size, _, num_point = batch_xyz.shape.as_list()
+        batch_size, _, num_point = batch_xyz.size()
         if self.training:
             # randomly choose a point as the seed for KNN extraction
             patch_num = 1
@@ -108,23 +109,23 @@ class Net(torch.nn.Module):
             assert(gt is not None)
 
         batch_size, _, num_point = xyz.size()
-        num_levels = log(ratio, self.step_ratio)
+        num_levels = int(log(ratio, self.step_ratio))
         max_num_point = min(num_point, self.max_num_point)
 
-        for l in range(num_levels):
-            curr_ratio = self.step_ratio ** (l + 1)
-            if l > 0:
+        for l in range(1, num_levels+1):
+            curr_ratio = self.step_ratio ** l
+            if l > 1:
                 # extract input to patches
                 if xyz.size(-1) > max_num_point:
                     gt_k = max_num_point * ratio // curr_ratio * self.step_ratio
                     # patches of xyz and feature, but unnormalized
-                    patch_xyz, _, gt = self.extract_xyz_feature_patch(
+                    patch_xyz, gt = self.extract_xyz_feature_patch(
                         xyz, max_num_point, gt_k=gt_k, gt_xyz=gt)
-                    old_xyz = torch.cat(
-                        torch.split(patch_xyz, batch_size, dim=0), dim=2)
                 else:
-                    old_xyz = patch_xyz = xyz
+                    patch_xyz = xyz
 
+                old_xyz = torch.cat(
+                        torch.split(patch_xyz, batch_size, dim=0), dim=2)
                 # Bx3x(N*r) and BxCx(N*r)
                 patch_xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     patch_xyz, previous_level4=(old_xyz, old_features))
@@ -132,13 +133,15 @@ class Net(torch.nn.Module):
                 if not self.training and (patch_xyz.shape[0] != batch_size):
                     xyz = torch.cat(
                         torch.split(patch_xyz, batch_size, dim=0), dim=2)
+                    # could possibly cache features after furthest sampling
+                    old_feautures = torch.cat(
+                            torch.split(patch_xyz, batch_size, dim=0), dim=2)
                     num_output_point = num_point*self.step_ratio
                     # resample to get sparser points idx [B, P, 1]
                     _, xyz = operations.furthest_point_sample(
                         xyz, num_output_point)
             else:
                 # Bx3x(N*r) and BxCx(N*r)
-                old_xyz = xyz
                 xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     xyz, previous_level4=None)
 
@@ -284,17 +287,15 @@ class Level(torch.nn.Module):
             x = 0.2 * knn_feats + x
 
         point_features = x
-        # BxCxNx1
-        x = x.unsqueeze(-1)
         # code 1x1(or2)xr
         _, code_length, ratio = self.code.size()
         # 1x1(or2)x(N*r)
-        code = self.code.expand(
-            x.size(0), -1, -1).repeat(batch_size, ratio, num_point*ratio)
+        code = self.code.repeat(x.size(0), 1, num_point)
+        code = code.to(device=x.device)
         # BxCxN -> BxCxNxr
-        x = x.unsqueeze(-1).repeat(batch_size, x.size(1), num_point, ratio)
+        x = x.unsqueeze(-1).repeat(1, 1, 1, ratio)
         # BxCx(N*r)
-        x = torch.reshape(x, [batch_size, x.size(1), num_point*ratio])
+        x = torch.reshape(x, [batch_size, x.size(1), num_point*ratio]).contiguous()
         # Bx(C+1)x(N*r)
         x = torch.cat([x, code], dim=1)
 

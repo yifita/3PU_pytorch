@@ -26,12 +26,12 @@ class DenseEdgeConv(nn.Module):
             k: int
             idx: (B, N, k)
         :return
-            edge features: (batch_size, num_points, k, num_dims)
+            edge features: (B, C, N, k)
         """
         if idx is None:
             # BCN(K+1), BN(K+1)
             knn_point, idx, _ = group_knn(k+1, x, x, unique=True)
-            idx = idx[:, :, :, 1:]
+            idx = idx[:, :, 1:]
             knn_point = knn_point[:, :, :, 1:]
 
         neighbor_center = torch.unsqueeze(x, dim=-1)
@@ -49,14 +49,15 @@ class DenseEdgeConv(nn.Module):
         # [B 2C N K]
         for i, mlp in enumerate(self.mlps):
             if i == 0:
-                y, idx = self.get_edge_feature(x, k=self.k, idx=idx)
-                y = torch.cat([x, nn.functional.relu_(mlp(y))])
+                y, idx = self.get_local_graph(x, k=self.k, idx=idx)
+                x = x.unsqueeze(-1).expand(-1, -1, -1, self.k)
+                y = torch.cat([x, nn.functional.relu_(mlp(y))], dim=1)
             elif i == self.n - 1:
-                y = torch.cat([y, mlp(y)])
+                y = torch.cat([y, mlp(y)], dim=1)
             else:
-                y = torch.cat([y, nn.functional.relu_(mlp(y))])
+                y = torch.cat([y, nn.functional.relu_(mlp(y))], dim=1)
 
-        y = torch.mean(y, dim=-1)
+        y, _ = torch.max(y, dim=-1)
         return y
 
 

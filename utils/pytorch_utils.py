@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import os
 from collections import OrderedDict
 
@@ -15,7 +16,10 @@ def save_network(net, directory, network_label, epoch_label=None, **kwargs):
 
 
 def load_network(net, path):
-    loaded_state = torch.load(path)
+    if path[-3:] == "pth":
+        loaded_state = torch.load(path)
+    else:
+        loaded_state = np.load(path).item()
     loaded_param_names = set(loaded_state["states"].keys())
     network = net.module if isinstance(
         net, torch.nn.DataParallel) else net

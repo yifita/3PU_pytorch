@@ -16,7 +16,7 @@ import operations
 parser = argparse.ArgumentParser()
 parser.add_argument('--phase', default='test',
                     help='train or test [default: train]')
-parser.add_argument('--gpu', default='0', help='GPU to use [default: GPU 0]')
+parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
 parser.add_argument('--id', default='demo',
                     help="experiment name, prepended to log_dir")
 parser.add_argument('--log_dir', default='../model',
@@ -30,7 +30,7 @@ parser.add_argument('--num_point', type=int,
                     help='Point Number [1024/2048] [default: 1024]')
 parser.add_argument('--num_shape_point', type=int,
                     help="Number of points per shape")
-parser.add_argument('--up_ratio', type=int, default=4,
+parser.add_argument('--up_ratio', type=int, default=16,
                     help='Upsampling Ratio [default: 2]')
 parser.add_argument('--max_epoch', type=int, default=160,
                     help='Epoch to run [default: 500]')
@@ -72,7 +72,7 @@ parser.add_argument('--fidelity_weight', default=50.0,
 
 FLAGS = parser.parse_args()
 PHASE = FLAGS.phase
-DEVICE = torch.devide('cuda', FLAGS.gpu)
+DEVICE = torch.device('cuda', FLAGS.gpu)
 ROOT_DIR = FLAGS.root_dir
 MODEL_DIR = os.path.join(FLAGS.log_dir, FLAGS.id)
 CKPT = FLAGS.ckpt
@@ -121,7 +121,7 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
         up_point_list   list of [3xMr]
     """
     # divide to patches
-    num_patches = int(input_pc.shape[0] / NUM_POINT * patch_num_ratio)
+    num_patches = int(input_pc.shape[1] / NUM_POINT * patch_num_ratio)
     input_pc = input_pc[np.newaxis, ...]
     # FPS sampling
     start = time.time()
@@ -130,11 +130,12 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
     input_list = []
     up_point_list = []
 
-    patches = operations.group_knn(
-        seeds, input_pc, NUM_POINT)
-    for point in tqdm(patches, total=len(patches)):
-        up_point = net.forward(point, UP_RATIO)
-        input_list.append(point)
+    patches, _, _ = operations.group_knn(
+        NUM_POINT, seeds, input_pc, NCHW=True)
+    for k in tqdm(range(num_patches)):
+        patch = patches[:, :, k, :]
+        up_point = net.forward(patch.detach(), UP_RATIO)
+        input_list.append(patch)
         up_point_list.append(up_point)
 
     return input_list, up_point_list
@@ -144,12 +145,13 @@ def test(save_path):
     """
     upsample a point cloud
     """
-    pytorch_utils.load_network(net, CKPT)
+    loaded_states = np.load(CKPT).item()
+    net.load_state_dict(loaded_states)
     net.to(DEVICE)
     net.eval()
     test_files = glob(TEST_DATA, recursive=True)
     for point_path in test_files:
-        data = pc_utils.read_ply(point_path, NUM_SHAPE_POINT)
+        data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         num_shape_point = data.shape[0] * FLAGS.drop_out
         # normalize "unnecessarily" to apply noise
         data, centroid, furthest_distance = pc_utils.normalize_point_cloud(

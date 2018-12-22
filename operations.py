@@ -14,14 +14,14 @@ def normalize_point_batch(pc, NCHW=True):
         NCHW    if True, treat the second dimension as channel dimension
     :return
         pc      normalized point clouds, same shape as input
-        centroid [B, 1, 3] or [B, 3, 1] center of point clouds 
+        centroid [B, 1, 3] or [B, 3, 1] center of point clouds
         furthest_distance [B, 1, 1] scale of point clouds
     """
     point_axis = 2 if NCHW else 1
     dim_axis = 1 if NCHW else 2
     centroid = torch.mean(pc, dim=point_axis, keepdim=True)
     pc = pc - centroid
-    furthest_distance = torch.max(
+    furthest_distance, _ = torch.max(
         torch.sqrt(torch.sum(pc ** 2, dim=dim_axis, keepdim=True)), dim=point_axis, keepdim=True)
     pc = pc / furthest_distance
     return pc, centroid, furthest_distance
@@ -229,7 +229,7 @@ class FurthestPointSampling(torch.autograd.Function):
 __furthest_point_sample = FurthestPointSampling.apply
 
 
-def furthest_point_sample(xyz, npoint):
+def furthest_point_sample(xyz, npoint, NCHW=True):
     """
     :param
         xyz (B, 3, N) or (B, N, 3)
@@ -241,16 +241,13 @@ def furthest_point_sample(xyz, npoint):
             (B, npoint, 3) or (B, 3, npoint) point sets"""
     assert(xyz.dim() == 3), "input for furthest sampling must be a 3D-tensor, but xyz.size() is {}".format(xyz.size())
     # need transpose
-    trans = False
-    if xyz.size(2) != 3:
-        assert(xyz.size(1) == 3), "furthest sampling is implemented for 3D points"
+    if NCHW:
         xyz = xyz.transpose(2, 1).contiguous()
-        trans = True
 
     assert(xyz.size(2) == 3), "furthest sampling is implemented for 3D points"
     idx = __furthest_point_sample(xyz, npoint)
     sampled_pc = gather_points(xyz.transpose(2, 1).contiguous(), idx)
-    if trans:
+    if not NCHW:
         sampled_pc = sampled_pc.transpose(2, 1).contiguous()
     return idx, sampled_pc
 
