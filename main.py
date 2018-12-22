@@ -2,7 +2,7 @@ import argparse
 import os
 import time
 import numpy as np
-import tqdm
+from tqdm import tqdm
 from glob import glob
 
 import torch
@@ -38,8 +38,7 @@ parser.add_argument('--batch_size', type=int, default=28,
                     help='Batch Size during training [default: 32]')
 parser.add_argument('--h5_data', help='h5 file for training')
 parser.add_argument('--record_data', help='record file for training')
-parser.add_argument(
-    '--test_data', default='data/test_data/sketchfab_poisson/poisson_5000/*.xyz', help='h5 file for training')
+parser.add_argument('--test_data', help='test data path')
 parser.add_argument('--learning_rate', type=float, default=0.0005)
 parser.add_argument('--restore_epoch', type=int)
 parser.add_argument('--stage_steps', type=int, default=15000,
