@@ -9,7 +9,7 @@ import torch
 
 from net import Net
 from model import Model
-from utils import pc_utils
+from utils import pc_utils, pytorch_utils
 from misc import logger
 import operations
 
@@ -145,6 +145,7 @@ def test(save_path):
     """
     upsample a point cloud
     """
+    pytorch_utils.load_network(net, CKPT)
     net.to(DEVICE)
     net.eval()
     test_files = glob(TEST_DATA, recursive=True)

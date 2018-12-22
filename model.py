@@ -65,33 +65,3 @@ class Model(object):
     def test_model(self):
         self.net.eval()
         self.forward()
-
-    def save_network(self, network_label, epoch_label):
-        save_filename = '%s_%s.pth' % (epoch_label, network_label)
-        save_path = os.path.join(self.opt.log_dir, save_filename)
-        merge_states = OrderedDict()
-        merge_states['states'] = self.net.cpu().state_dict()
-        merge_states['opt'] = vars(self.opt)
-        torch.save(merge_states, save_path)
-        self.net.cuda()
-
-    def load_network(self, path):
-        loaded_state = torch.load(path)
-        loaded_param_names = set(loaded_state["Net"].keys())
-        network = self.net.module if isinstance(
-             self.net, torch.nn.DataParallel) else self.net
-
-         # allow loaded states to contain keys that don't exist in current model
-         # by trimming these keys;
-         own_state = network.state_dict()
-          extra = loaded_param_names - set(own_state.keys())
-           if len(extra) > 0:
-                print('Dropping ' + str(extra) + ' from loaded states')
-            for k in extra:
-                del loaded_state[name][k]
-
-            try:
-                network.load_state_dict(loaded_state[name])
-            except KeyError as e:
-                print(e)
-            print('Loaded {} state from {}'.format(name, path))
