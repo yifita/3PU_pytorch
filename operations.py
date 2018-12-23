@@ -104,6 +104,60 @@ class KNN(torch.autograd.Function):
         return index_batch, distance_batch
 
 
+# def group_knn(k, query, points, unique=True, NCHW=True):
+#     """
+#     group batch of points to neighborhoods
+#     :param
+#         k: neighborhood size
+#         query: BxCxM or BxMxC
+#         points: BxCxN or BxNxC
+#         unique: neighborhood contains *unique* points
+#         NCHW: if true, the second dimension is the channel dimension
+#     :return
+#         neighbor_points BxCxMxk (if NCHW) or BxMxkxC (otherwise)
+#         index_batch     BxMxk
+#         distance_batch  BxMxk
+#     """
+#     if NCHW:
+#         batch_size, channels, num_points = points.size()
+#         points_trans = points.transpose(2, 1).contiguous()
+#         query_trans = query.transpose(2, 1).contiguous()
+#     else:
+#         points_trans = points.contiguous()
+#         query_trans = query.contiguous()
+
+#     batch_size, num_points, _ = points_trans.size()
+#     assert(num_points >= query.size(1)
+#            ), "points size must be greater or equal to query size"
+#     # BxMxk
+#     index_batch, distance_batch = KNN.apply(k, query_trans, points_trans)
+#     # BxNxC -> BxMxNxC
+#     points_expanded = points_trans.unsqueeze(dim=1).expand(
+#         (-1, query.size(2), -1, -1))
+#     # BxMxk -> BxMxkxC
+#     index_batch_expanded = index_batch.unsqueeze(dim=-1).expand(
+#         (-1, -1, -1, points_trans.size(-1)))
+#     # BxMxkxC
+#     neighbor_points = torch.gather(points_expanded, 2, index_batch_expanded)
+#     index_batch = index_batch
+#     if NCHW:
+#         # BxCxMxk
+#         neighbor_points = neighbor_points.permute(0, 3, 1, 2).contiguous()
+#     return neighbor_points, index_batch, distance_batch
+def __batch_distance_matrix_general(A, B):
+    """
+    :param
+        A, B [B,N,C], [B,M,C]
+    :return
+        D [B,N,M]
+    """
+    r_A = torch.sum(A * A, dim=2, keepdim=True)
+    r_B = torch.sum(B * B, dim=2, keepdim=True)
+    m = torch.matmul(A, B.permute(0, 2, 1))
+    D = r_A - 2 * m + r_B.permute(0, 2, 1)
+    return D
+
+
 def group_knn(k, query, points, unique=True, NCHW=True):
     """
     group batch of points to neighborhoods
@@ -129,21 +183,27 @@ def group_knn(k, query, points, unique=True, NCHW=True):
     batch_size, num_points, _ = points_trans.size()
     assert(num_points >= query.size(1)
            ), "points size must be greater or equal to query size"
-    # BxMxk
-    index_batch, distance_batch = KNN.apply(k, query_trans, points_trans)
-    # BxNxC -> BxMxNxC
-    points_expanded = points_trans.unsqueeze(dim=1).expand(
-        (-1, query.size(2), -1, -1))
-    # BxMxk -> BxMxkxC
-    index_batch_expanded = index_batch.unsqueeze(dim=-1).expand(
-        (-1, -1, -1, points_trans.size(-1)))
-    # BxMxkxC
-    neighbor_points = torch.gather(points_expanded, 2, index_batch_expanded)
-    index_batch = index_batch
+    D = __batch_distance_matrix_general(query_trans, points_trans)
+    # prepare duplicate entries
+    points_np = points.cpu().numpy()
+    indices_duplicated = np.ones(
+        (batch_size, 1, num_points), dtype=np.int32)
+    for idx in range(batch_size):
+        _, indices = np.unique(points_np[idx], return_index=True, axis=0)
+        indices_duplicated[idx, :, indices] = 0
+    indices_duplicated = torch.from_numpy(
+        indices_duplicated).to(device=D.device, dtype=torch.float32)
+    D += torch.max(D)*indices_duplicated
+    # (B,M,k)
+    distances, point_indices = tf.topk(-D, k, dim=-1, sorted=True)  # (B,M,k)
+    # (B,N,C)->(B,M,N,C)
+    knn_trans = torch.gather(points_trans.unsqueeze(1).expand(-1, query_trans.size(1), -1, -1),
+                             point_indices.unsqueeze(-1).expand(-1, -1, -1, points_trans.size(-1)))
+
     if NCHW:
-        # BxCxMxk
-        neighbor_points = neighbor_points.permute(0, 3, 1, 2).contiguous()
-    return neighbor_points, index_batch, distance_batch
+        knn_trans = knn_trans.permute(0, 3, 1, 2)
+
+    return knn_trans, point_indices, -distances
 
 
 class GatherFunction(torch.autograd.Function):
