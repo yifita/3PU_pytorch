@@ -149,7 +149,7 @@ class Net(torch.nn.Module):
                         torch.split(old_xyz, batch_size, dim=0), dim=2)
                     old_features = torch.cat(
                         torch.split(old_features, batch_size, dim=0), dim=2)
-                    num_output_point = num_point*self.step_ratio
+                    num_output_point = num_point*curr_ratio
                     # resample to get sparser points idx [B, P, 1]
                     _, xyz = operations.furthest_point_sample(
                         xyz, num_output_point)

@@ -148,8 +148,10 @@ def test(result_dir):
     """
     upsample a point cloud
     """
-    loaded_states = np.load(CKPT).item()
-    net.load_state_dict(loaded_states)
+    # loaded_states = np.load(CKPT).item()
+    # net.load_state_dict(loaded_states)
+    # pytorch_utils.save_network(net, os.path.dirname(CKPT), "final", "poisson")
+    pytorch_utils.load_network(net, CKPT)
     net.to(DEVICE)
     net.eval()
     test_files = glob(TEST_DATA, recursive=True)
@@ -190,6 +192,9 @@ def test(result_dir):
         path = os.path.join(result_dir, folder,
                             point_path.split('/')[-1][:-4]+'.ply')
 
+        data = input_pc.transpose(2, 1).cpu().numpy()
+        data = (data * furthest_distance) + centroid
+        data = data[0,...]
         pc_utils.save_ply(data, path[:-4]+'_input.ply')
         pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
 
