@@ -140,14 +140,14 @@ class Net(torch.nn.Module):
                     patch_xyz, previous_level4=(old_xyz, old_features))
                 # cache xyz next level feature propagation
                 old_xyz = patch_xyz
-                patch_xyz = tmp
+                xyz = tmp
                 # merge patches in testing
                 if not self.training and (patch_xyz.shape[0] != batch_size):
                     xyz = torch.cat(
-                        torch.split(patch_xyz, batch_size, dim=0), dim=2)
+                        torch.split(xyz, batch_size, dim=0), dim=2)
                     old_xyz = torch.cat(
                         torch.split(old_xyz, batch_size, dim=0), dim=2)
-                    old_feautures = torch.cat(
+                    old_features = torch.cat(
                         torch.split(old_features, batch_size, dim=0), dim=2)
                     num_output_point = num_point*self.step_ratio
                     # resample to get sparser points idx [B, P, 1]

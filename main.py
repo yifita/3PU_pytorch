@@ -114,19 +114,18 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
     """
     upsample patches of a point cloud
     :param
-        input_pc        3xN
+        input_pc        1x3xN
         patch_num_ratio int, impacts number of patches and overlapping
     :return
         input_list      list of [3xM]
         up_point_list   list of [3xMr]
     """
     # divide to patches
-    num_patches = int(input_pc.shape[1] / NUM_POINT * patch_num_ratio)
-    input_pc = input_pc[np.newaxis, ...]
+    num_patches = int(input_pc.shape[2] / NUM_POINT * patch_num_ratio)
     # FPS sampling
     start = time.time()
-    _, seeds = operations.furthest_point_sample(input_pc, num_patches)
-    print("number of patches: %d" % seeds.shape[1])
+    _, seeds = operations.furthest_point_sample(input_pc, num_patches, NCHW=True)
+    print("number of patches: %d" % seeds.shape[0])
     input_list = []
     up_point_list = []
 
@@ -137,8 +136,12 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
         up_point = net.forward(patch.detach(), UP_RATIO)
         input_list.append(patch)
         up_point_list.append(up_point)
+        break
 
-    return input_list, up_point_list
+    up_point = torch.cat(up_point_list, dim=-1)
+    input_point = torch.cat(input_list, dim=-1)
+
+    return input_point, up_point
 
 
 def test(result_dir):
@@ -152,38 +155,42 @@ def test(result_dir):
     test_files = glob(TEST_DATA, recursive=True)
     for point_path in test_files:
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
-        num_shape_point = data.shape[0] * FLAGS.drop_out
+        data = data[np.newaxis, ...]
+        num_shape_point = data.shape[1] * FLAGS.drop_out
         # normalize "unnecessarily" to apply noise
         data, centroid, furthest_distance = pc_utils.normalize_point_cloud(
             data)
-        is_2D = np.all(data[:, 2] == 0)
+        is_2D = np.all(data[:, :, 2] == 0)
         if FLAGS.drop_out < 1:
-            _, data = operations.furthest_point_sample(
-                data[np.newaxis, ...], int(num_shape_point))[0]
+            _, data = operations.furthest_point_sample(data, int(num_shape_point))
         if JITTER:
             data = pc_utils.jitter_perturbation_point_cloud(
-                data[np.newaxis, ...], sigma=FLAGS.jitter_sigma, clip=FLAGS.jitter_max, is_2D=is_2D)[0, ...]
+                data, sigma=FLAGS.jitter_sigma, clip=FLAGS.jitter_max, is_2D=is_2D)
 
         # transpose to NCHW format
-        data = torch.from_numpy(data).transpose(1, 0).to(device=DEVICE)
+        data = torch.from_numpy(data).transpose(2, 1).to(device=DEVICE)
         # get the edge information
         logger.info(os.path.basename(point_path))
         start = time.time()
         with torch.no_grad():
-            input_list, pred_list = pc_prediction(
+            # 1x3xN
+            input_pc, pred_pc = pc_prediction(
                 net, data, patch_num_ratio=PATCH_NUM_RATIO)
         end = time.time()
         print("total time: ", end-start)
-        pred_pc = np.concatenate(pred_list, axis=0)
+        _, pred_pc = operations.furthest_point_sample(
+            pred_pc, int(num_shape_point)*UP_RATIO, NCHW=True)
+        pred_pc = pred_pc.transpose(2, 1).cpu().numpy()
         pred_pc = (pred_pc * furthest_distance) + centroid
+        data = data.transpose(2, 1).cpu().numpy()
         data = (data * furthest_distance) + centroid
+        data = data[0,...]
+        pred_pc = pred_pc[0,...]
         folder = os.path.basename(os.path.dirname(point_path))
         path = os.path.join(result_dir, folder,
                             point_path.split('/')[-1][:-4]+'.ply')
 
         pc_utils.save_ply(data, path[:-4]+'_input.ply')
-        _, pred_pc = operations.furthest_point_sample(
-            pred_pc[np.newaxis, ...], int(num_shape_point)*UP_RATIO)
         pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
 
 
