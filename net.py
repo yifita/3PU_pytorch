@@ -102,7 +102,7 @@ class Net(torch.nn.Module):
         else:
             gt_xyz = None
 
-        return batch_xyz, batch_features, gt_xyz
+        return batch_xyz, gt_xyz
 
     def forward(self, xyz, ratio=None, gt=None, **kwargs):
         """
@@ -280,7 +280,7 @@ class Level(torch.nn.Module):
                 self.fm_knn, xyz, previous_xyz, unique=True, NCHW=True)
             # BxCxNxM
             previous_feat = previous_feat.unsqueeze(
-                2).expand(-1, -1, num_point, -1, -1)
+                2).expand(-1, -1, num_point, -1)
             # BxCxNxK
             knn_idx = knn_idx.unsqueeze(
                 1).expand(-1, previous_feat.size(1), -1, -1)
@@ -288,9 +288,9 @@ class Level(torch.nn.Module):
             knn_feats = torch.gather(previous_feat, 3, knn_idx)
             # Bx1xNxK
             _, s_average_weight = self.exponential_distance(
-                xyz, previous_xyz)
+                xyz, knn_points)
             _, f_average_weight = self.exponential_distance(
-                x, previous_feat)
+                x, knn_feats)
             average_weight = s_average_weight * f_average_weight
             average_weight = average_weight / \
                 torch.sum(average_weight+1e-5, dim=-1, keepdim=True)
