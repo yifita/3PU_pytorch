@@ -30,7 +30,7 @@ class Net(torch.nn.Module):
                     torch.nn.init.xavier_normal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
                 elif isinstance(m, (torch.nn.InstanceNorm1d, torch.nn.InstanceNorm2d,
-                        torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+                                    torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
                     torch.nn.init.zeros_(m.bias)
                     torch.nn.init.ones_(m.weight)
 
@@ -84,6 +84,17 @@ class Net(torch.nn.Module):
         # MBx3xK
         batch_xyz = torch.cat(torch.unbind(batch_xyz, dim=2), dim=0)
 
+        # if batch_features is not None:
+        #     # BxCxMxN
+        #     batch_features = torch.unsqueeze(
+        #         batch_features, dim=2).expand(patch_num)
+        #     new_patch_idx = new_patch_idx.unsqueeze(dim=1).expand(
+        #         (-1, batch_features.size(1), -1, -1))  # B, C, M, K
+        #     batch_features = torch.gather(batch_features, 3, new_patch_idx)
+        #     # MBxCxK
+        #     batch_features = torch.cat(
+        #         torch.unbind(batch_features, dim=2), dim=0)
+
         if gt_xyz is not None and gt_k is not None:
             gt_xyz, _, _ = operations.group_knn(
                 gt_k, batch_seed_point, gt_xyz, unique=False)
@@ -91,7 +102,7 @@ class Net(torch.nn.Module):
         else:
             gt_xyz = None
 
-        return batch_xyz, gt_xyz
+        return batch_xyz, batch_features, gt_xyz
 
     def forward(self, xyz, ratio=None, gt=None, **kwargs):
         """
@@ -124,24 +135,27 @@ class Net(torch.nn.Module):
                 else:
                     patch_xyz = xyz
 
-                old_xyz = torch.cat(
-                        torch.split(patch_xyz, batch_size, dim=0), dim=2)
                 # Bx3x(N*r) and BxCx(N*r)
-                patch_xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
+                tmp, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     patch_xyz, previous_level4=(old_xyz, old_features))
+                # cache xyz next level feature propagation
+                old_xyz = patch_xyz
+                patch_xyz = tmp
                 # merge patches in testing
                 if not self.training and (patch_xyz.shape[0] != batch_size):
                     xyz = torch.cat(
                         torch.split(patch_xyz, batch_size, dim=0), dim=2)
-                    # could possibly cache features after furthest sampling
+                    old_xyz = torch.cat(
+                        torch.split(old_xyz, batch_size, dim=0), dim=2)
                     old_feautures = torch.cat(
-                            torch.split(patch_xyz, batch_size, dim=0), dim=2)
+                        torch.split(old_features, batch_size, dim=0), dim=2)
                     num_output_point = num_point*self.step_ratio
                     # resample to get sparser points idx [B, P, 1]
                     _, xyz = operations.furthest_point_sample(
                         xyz, num_output_point)
             else:
                 # Bx3x(N*r) and BxCx(N*r)
+                old_xyz = xyz
                 xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     xyz, previous_level4=None)
 
@@ -295,7 +309,8 @@ class Level(torch.nn.Module):
         # BxCxN -> BxCxNxr
         x = x.unsqueeze(-1).repeat(1, 1, 1, ratio)
         # BxCx(N*r)
-        x = torch.reshape(x, [batch_size, x.size(1), num_point*ratio]).contiguous()
+        x = torch.reshape(
+            x, [batch_size, x.size(1), num_point*ratio]).contiguous()
         # Bx(C+1)x(N*r)
         x = torch.cat([x, code], dim=1)
 

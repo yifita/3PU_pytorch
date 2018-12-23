@@ -141,7 +141,7 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
     return input_list, up_point_list
 
 
-def test(save_path):
+def test(result_dir):
     """
     upsample a point cloud
     """
@@ -178,7 +178,7 @@ def test(save_path):
         pred_pc = (pred_pc * furthest_distance) + centroid
         data = (data * furthest_distance) + centroid
         folder = os.path.basename(os.path.dirname(point_path))
-        path = os.path.join(save_path, folder,
+        path = os.path.join(result_dir, folder,
                             point_path.split('/')[-1][:-4]+'.ply')
 
         pc_utils.save_ply(data, path[:-4]+'_input.ply')

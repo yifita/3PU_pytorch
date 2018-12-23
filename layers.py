@@ -15,7 +15,7 @@ class DenseEdgeConv(nn.Module):
         self.mlps.append(torch.nn.Conv2d(
             2*in_channels, growth_rate, 1, bias=True))
         for i in range(1, n):
-            in_channels += growth_rate
+            in_channels = growth_rate*i + in_channels
             self.mlps.append(torch.nn.Conv2d(
                 in_channels, growth_rate, 1, bias=True))
 
@@ -35,7 +35,6 @@ class DenseEdgeConv(nn.Module):
             knn_point = knn_point[:, :, :, 1:]
 
         neighbor_center = torch.unsqueeze(x, dim=-1)
-
         neighbor_center = neighbor_center.expand_as(knn_point)
 
         edge_feature = torch.cat(
