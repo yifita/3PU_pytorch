@@ -268,7 +268,7 @@ class Level(torch.nn.Module):
         x = torch.cat([self.layer3(self.layer3_prep(x)), x], dim=1)
         x = torch.cat([self.layer4(self.layer4_prep(x)), x], dim=1)
         # interlevel skip connections
-        if previous_level4 is not None:
+        if previous_level4 is not None and self.fm_knn > 0:
             previous_xyz, previous_feat = previous_level4
             if not self.training and previous_xyz.shape[0] != x.shape[0]:
                 # Bx3xM
