@@ -27,7 +27,7 @@ class Net(torch.nn.Module):
         if self.training:
             for m in self.modules():
                 if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv1d)):
-                    torch.nn.init.xavier_normal_(m.weight)
+                    torch.nn.init.xavier_uniform_(m.weight)
                     torch.nn.init.zeros_(m.bias)
                 elif isinstance(m, (torch.nn.InstanceNorm1d, torch.nn.InstanceNorm2d,
                                     torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
@@ -217,11 +217,11 @@ class Level(torch.nn.Module):
         """
         if points.dim() == 3:
             points = points.unsqueeze(dim=-1)
-        distance = torch.mean(
+        distance = torch.sum(
             (points - knn_points) ** 2, dim=1, keepdim=True).detach()
         # mean_P(min_K distance)
-        h = torch.mean(torch.mean(distance, dim=-1,
-                                  keepdim=True), dim=-2, keepdim=True)
+        h = torch.mean(torch.min(distance, dim=-1,
+                                 keepdim=True)[0], dim=-2, keepdim=True)
         weight = torch.exp(-distance / (h/2)).detach()
         return distance, weight
 
@@ -276,14 +276,14 @@ class Level(torch.nn.Module):
                 # BxCxM
                 previous_feat = previous_feat.expand(batch_size, -1, -1)
             # find closest k point in spatial, BxNxK
-            knn_points, knn_idx, knn_distance = operations.group_knn(
+            knn_points, knn_idx, _ = operations.group_knn(
                 self.fm_knn, xyz, previous_xyz, unique=True, NCHW=True)
             # BxCxNxM
             previous_feat = previous_feat.unsqueeze(
-                2).expand(-1, -1, num_point, -1)
+                2).repeat(1, 1, num_point, 1)
             # BxCxNxK
             knn_idx = knn_idx.unsqueeze(
-                1).expand(-1, previous_feat.size(1), -1, -1)
+                1).repeat(1, previous_feat.size(1), 1, 1)
             # BxCxNxK
             knn_feats = torch.gather(previous_feat, 3, knn_idx)
             # Bx1xNxK
@@ -322,8 +322,8 @@ class Level(torch.nn.Module):
         # Bx3x(N*r)
         x = self.fc_layer2(x).squeeze(-1)
         # add residual
-        x += torch.reshape(xyz_normalized.unsqueeze(3).expand([-1, -1, -1, ratio]), [
-            batch_size, -1, num_point*ratio])  # B, N, 4, 3
+        x += torch.reshape(xyz_normalized.unsqueeze(3).repeat([1, 1, 1, ratio]), [
+            batch_size, 3, num_point*ratio])  # B, N, 4, 3
         # normalize back
         x = (x * radius) + centroid
         return x, point_features, centroid, radius
