@@ -131,17 +131,17 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
 
     patches, _, _ = operations.group_knn(
         NUM_POINT, seeds, input_pc, NCHW=True)
+
     for k in tqdm(range(num_patches)):
         patch = patches[:, :, k, :]
-        up_point = net.forward(patch.detach(), UP_RATIO)
+        up_point = net.forward(patch.detach(), ratio=UP_RATIO)
         input_list.append(patch)
         up_point_list.append(up_point)
-        break
 
-    up_point = torch.cat(up_point_list, dim=-1)
-    input_point = torch.cat(input_list, dim=-1)
+    # up_point = torch.cat(up_point_list, dim=-1)
+    # input_point = torch.cat(input_list, dim=-1)
 
-    return input_point, up_point
+    return input_list, up_point_list
 
 
 def test(result_dir):
@@ -156,6 +156,9 @@ def test(result_dir):
     net.eval()
     test_files = glob(TEST_DATA, recursive=True)
     for point_path in test_files:
+        folder = os.path.basename(os.path.dirname(point_path))
+        path = os.path.join(result_dir, folder,
+                            point_path.split('/')[-1][:-4]+'.ply')
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
@@ -176,8 +179,15 @@ def test(result_dir):
         start = time.time()
         with torch.no_grad():
             # 1x3xN
-            input_pc, pred_pc = pc_prediction(
+            input_pc_list, pred_pc_list = pc_prediction(
                 net, data, patch_num_ratio=PATCH_NUM_RATIO)
+
+        for i, patch_pair in enumerate(zip(input_pc_list, pred_pc_list)):
+            in_patch, out_patch = patch_pair
+            pc_utils.save_ply(in_patch.transpose(2,1).cpu().numpy()[0], path[:-4]+'_input_%d.ply' % i)
+            pc_utils.save_ply(out_patch.transpose(2,1).cpu().numpy()[0], path[:-4]+'_output_%d.ply' % i)
+        pred_pc = torch.cat(pred_pc_list, dim=-1)
+        input_point = torch.cat(input_pc_list, dim=-1)
         end = time.time()
         print("total time: ", end-start)
         _, pred_pc = operations.furthest_point_sample(
@@ -188,13 +198,10 @@ def test(result_dir):
         data = (data * furthest_distance) + centroid
         data = data[0,...]
         pred_pc = pred_pc[0,...]
-        folder = os.path.basename(os.path.dirname(point_path))
-        path = os.path.join(result_dir, folder,
-                            point_path.split('/')[-1][:-4]+'.ply')
 
-        data = input_pc.transpose(2, 1).cpu().numpy()
-        data = (data * furthest_distance) + centroid
-        data = data[0,...]
+        # data = input_pc.transpose(2, 1).cpu().numpy()
+        # data = (data * furthest_distance) + centroid
+        # data = data[0,...]
         pc_utils.save_ply(data, path[:-4]+'_input.ply')
         pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
 

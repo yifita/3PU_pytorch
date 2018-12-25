@@ -1,5 +1,6 @@
 import torch
 import faiss
+import numpy as np
 
 import sampling
 
@@ -144,6 +145,8 @@ class KNN(torch.autograd.Function):
 #         # BxCxMxk
 #         neighbor_points = neighbor_points.permute(0, 3, 1, 2).contiguous()
 #     return neighbor_points, index_batch, distance_batch
+
+
 def __batch_distance_matrix_general(A, B):
     """
     :param
@@ -185,7 +188,7 @@ def group_knn(k, query, points, unique=True, NCHW=True):
            ), "points size must be greater or equal to query size"
     D = __batch_distance_matrix_general(query_trans, points_trans)
     # prepare duplicate entries
-    points_np = points.cpu().numpy()
+    points_np = points_trans.cpu().numpy()
     indices_duplicated = np.ones(
         (batch_size, 1, num_points), dtype=np.int32)
     for idx in range(batch_size):
@@ -195,9 +198,10 @@ def group_knn(k, query, points, unique=True, NCHW=True):
         indices_duplicated).to(device=D.device, dtype=torch.float32)
     D += torch.max(D)*indices_duplicated
     # (B,M,k)
-    distances, point_indices = tf.topk(-D, k, dim=-1, sorted=True)  # (B,M,k)
-    # (B,N,C)->(B,M,N,C)
+    distances, point_indices = torch.topk(-D, k, dim=-1, sorted=True)  # (B,M,k)
+    # (B,N,C)->(B,M,N,C), (B,M,k)->(B,M,k,C)
     knn_trans = torch.gather(points_trans.unsqueeze(1).expand(-1, query_trans.size(1), -1, -1),
+                             2,
                              point_indices.unsqueeze(-1).expand(-1, -1, -1, points_trans.size(-1)))
 
     if NCHW:

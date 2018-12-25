@@ -50,11 +50,11 @@ class DenseEdgeConv(nn.Module):
             if i == 0:
                 y, idx = self.get_local_graph(x, k=self.k, idx=idx)
                 x = x.unsqueeze(-1).repeat(1, 1, 1, self.k)
-                y = torch.cat([x, nn.functional.relu_(mlp(y))], dim=1)
-            elif i == self.n - 1:
-                y = torch.cat([y, mlp(y)], dim=1)
+                y = torch.cat([nn.functional.relu_(mlp(y)), x], dim=1)
+            elif i == (self.n - 1):
+                y = torch.cat([mlp(y), y], dim=1)
             else:
-                y = torch.cat([y, nn.functional.relu_(mlp(y))], dim=1)
+                y = torch.cat([nn.functional.relu_(mlp(y)), y], dim=1)
 
         y, _ = torch.max(y, dim=-1)
         return y
