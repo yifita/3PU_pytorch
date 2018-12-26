@@ -25,6 +25,7 @@ class H5Dataset(data.Dataset):
                  batch_size=16, drop_out=1.0):
         super(H5Dataset, self).__init__()
         np.random.seed(0)
+        self.phase = phase
         self.is_2D = False
         self.batch_size = batch_size
         self.num_patch_point = num_patch_point
@@ -36,6 +37,7 @@ class H5Dataset(data.Dataset):
         self.step_ratio = step_ratio
         self.input_array, self.label_array = self.load_patch_data(
             h5_path, up_ratio, step_ratio, num_shape_point)
+        self.scales = [step_ratio**r for r in range(1, int(log(up_ratio, step_ratio))+1)]
 
     def __len__(self):
         return 300*self.batch_size
@@ -75,10 +77,8 @@ class H5Dataset(data.Dataset):
             np.expand_dims(furthest_distance, axis=-1)
         label = {}
 
-        self.scales = []
         for x in range(1, int(log(up_ratio, step_ratio)+1)):
             r = step_ratio**x
-            self.scales.append(r)
             closest_larger_equal = num_points[np.searchsorted(
                 num_points, num_in_point*r)]
             label["x%d" % r] = f[tag+"_%d" % closest_larger_equal][:, :, :3]
@@ -110,14 +110,17 @@ class H5Dataset(data.Dataset):
         """
         rnd_pts = np.random.randint(0, input_pc.shape[1], [self.batch_size])
         rnd_pts = input_pc[:, rnd_pts, :]  # [batch_size, 1, 3]
+        label_pc = torch.from_numpy(label_pc)
+        input_pc = torch.from_numpy(input_pc)
+        rnd_pts = torch.from_numpy(rnd_pts)
         # [1, B, rK, 3]
         label_patches = group_knn(
-            self.num_patch_point*ratio, label_pc, rnd_pts, NCHW=False)[0][0]
+            self.num_patch_point*ratio, rnd_pts, label_pc, NCHW=False)[0][0]
         # [1, B, K, 3]
         input_patches = group_knn(
-            self.num_patch_point, input_pc, rnd_pts, NCHW=False)[0][0]
+            self.num_patch_point, rnd_pts, input_pc, NCHW=False)[0][0]
 
-        return input_patches, label_patches
+        return input_patches.numpy(), label_patches.numpy()
 
     def augment(self, input_patches, label_patches):
         """
@@ -149,11 +152,10 @@ class H5Dataset(data.Dataset):
         return input_patches, label_patches, scales
 
     def __getitem__(self, index):
-        ratio = np.random.choice(self.scales)
-
+        ratio = self.scales[np.random.randint(len(self.scales))]
+        index = index % self.input_array.shape[0]
         input_patches, label_patches = self.shape_to_patch(
             self.input_array[index:index+1, ...], self.label_array["x%d" % ratio][index:index+1, ...], ratio)
-
         # augment data
         if self.phase == "train":
             input_patches, label_patches, scales = self.augment(
@@ -168,38 +170,29 @@ class H5Dataset(data.Dataset):
         input_patches = torch.from_numpy(input_patches).transpose(2, 1)
         label_patches = torch.from_numpy(label_patches).transpose(2, 1)
         scales = torch.from_numpy(scales)
-
-        return input_patches, label_patches, scales
-
-
-# class DataLoader(multiproc.MyDataLoader):
-#     """Hacky way to progressively load scales"""
-
-#     def __init__(self, dataset, batch_size, scale=None):
-#         self.dataset = dataset
-#         super(DataLoader, self).__init__(
-#             self.dataset,
-#             batch_size=batch_size,
-#             shuffle=(self.phase == Phase.TRAIN),
-#             num_workers=16,
-#             random_vars=copy.deepcopy(
-#                 dataset.scale) if self.phase == "train" else None,
-#             sampler=None)
+        return input_patches, label_patches, scales, ratio
 
 
 if __name__ == "__main__":
     dataset = H5Dataset(
         "train_poisson_310_poisson_625_poisson_1250_poisson_2500_poisson_5000_poisson_10000_poisson_20000_poisson_40000_poisson_80000.hdf5",
-        num_shape_point=5000, num_patch_point=312)
+        num_shape_point=5000, num_patch_point=312, batch_size=4)
+    dataset.scales = [2]
 
-    batch_size = 4
-    dataloader = data.DataLoader(dataset, 4)
+    dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True)
     for i, example in enumerate(dataloader):
-        input_pc, label_pc, ratio = dataloader
-        for b in range(batch_size):
-            pc_utils.save_ply(input_pc[b], "./input-{}-{}.ply".format(i, b))
-            pc_utils.save_ply(label_pc[b], "./label-{}-{}.ply".format(i, b))
+        input_pc, label_pc, scale, ratio = example
+        ratio = ratio.item()
+        print(ratio)
+        input_pc = input_pc[0].transpose(2,1)
+        label_pc = label_pc[0].transpose(2,1)
+
+        pc_utils.save_ply(input_pc[0].numpy(), "./input-{}x{}.ply".format(i, ratio))
+        pc_utils.save_ply(label_pc[0].numpy(), "./label-{}x{}.ply".format(i, ratio))
         if i == 4:
             dataset.scales = [2, 4]
         if i == 9:
-            dataset.scales = [2]
+            dataset.scales = [2, 4, 16]
+        if i >= 20:
+            break
+
