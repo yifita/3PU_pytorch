@@ -16,7 +16,8 @@ import operations
 parser = argparse.ArgumentParser()
 parser.add_argument('--phase', default='test',
                     help='train or test [default: train]')
-parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
+parser.add_argument('--gpu', type=int, default=0,
+                    help='GPU to use [default: GPU 0]')
 parser.add_argument('--id', default='demo',
                     help="experiment name, prepended to log_dir")
 parser.add_argument('--log_dir', default='../model',
@@ -110,6 +111,11 @@ net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
           knn=KNN, growth_rate=GROWTH_RATE, dense_n=DENSE_N, fm_knn=FM_KNN)
 
 
+def train(net):
+    model = Model(net, "train", FLAGS)
+    # data loader
+
+
 def pc_prediction(net, input_pc, patch_num_ratio=3):
     """
     upsample patches of a point cloud
@@ -124,7 +130,8 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
     num_patches = int(input_pc.shape[2] / NUM_POINT * patch_num_ratio)
     # FPS sampling
     start = time.time()
-    _, seeds = operations.furthest_point_sample(input_pc, num_patches, NCHW=True)
+    _, seeds = operations.furthest_point_sample(
+        input_pc, num_patches, NCHW=True)
     print("number of patches: %d" % seeds.shape[0])
     input_list = []
     up_point_list = []
@@ -167,7 +174,8 @@ def test(result_dir):
             data)
         is_2D = np.all(data[:, :, 2] == 0)
         if FLAGS.drop_out < 1:
-            _, data = operations.furthest_point_sample(data, int(num_shape_point))
+            _, data = operations.furthest_point_sample(
+                data, int(num_shape_point))
         if JITTER:
             data = pc_utils.jitter_perturbation_point_cloud(
                 data, sigma=FLAGS.jitter_sigma, clip=FLAGS.jitter_max, is_2D=is_2D)
@@ -184,8 +192,10 @@ def test(result_dir):
 
         for i, patch_pair in enumerate(zip(input_pc_list, pred_pc_list)):
             in_patch, out_patch = patch_pair
-            pc_utils.save_ply(in_patch.transpose(2,1).cpu().numpy()[0], path[:-4]+'_input_%d.ply' % i)
-            pc_utils.save_ply(out_patch.transpose(2,1).cpu().numpy()[0], path[:-4]+'_output_%d.ply' % i)
+            pc_utils.save_ply(in_patch.transpose(2, 1).cpu().numpy()[
+                              0], path[:-4]+'_input_%d.ply' % i)
+            pc_utils.save_ply(out_patch.transpose(2, 1).cpu().numpy()[
+                              0], path[:-4]+'_output_%d.ply' % i)
         pred_pc = torch.cat(pred_pc_list, dim=-1)
         input_point = torch.cat(input_pc_list, dim=-1)
         end = time.time()
@@ -196,8 +206,8 @@ def test(result_dir):
         pred_pc = (pred_pc * furthest_distance) + centroid
         data = data.transpose(2, 1).cpu().numpy()
         data = (data * furthest_distance) + centroid
-        data = data[0,...]
-        pred_pc = pred_pc[0,...]
+        data = data[0, ...]
+        pred_pc = pred_pc[0, ...]
 
         # data = input_pc.transpose(2, 1).cpu().numpy()
         # data = (data * furthest_distance) + centroid
