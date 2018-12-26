@@ -1,4 +1,5 @@
 import torch
+import torch.utils.data as data
 import h5py
 import re
 import os
@@ -7,11 +8,12 @@ import numpy as np
 import copy
 
 # from utils import multiproc_dataloader as multiproc
+from misc import logger
 from utils import pc_utils
 from operations import group_knn
 
 
-class H5Dataset(torch.utils.data.Dataset):
+class H5Dataset(data.Dataset):
     """
     load the entire hdf5 file to memory
     """
@@ -34,6 +36,9 @@ class H5Dataset(torch.utils.data.Dataset):
         self.step_ratio = step_ratio
         self.input_array, self.label_array = self.load_patch_data(
             h5_path, up_ratio, step_ratio, num_shape_point)
+
+    def __len__(self):
+        return 300*self.batch_size
 
     def load_patch_data(self, h5_path, up_ratio, step_ratio, num_point):
         """
@@ -93,7 +98,7 @@ class H5Dataset(torch.utils.data.Dataset):
         logger.info(("total %d samples" % (data.shape[0])))
         return data, label
 
-    def shape_to_patch(self, input_pc, label_pc):
+    def shape_to_patch(self, input_pc, label_pc, ratio):
         """
         sample random patch from the input shapes
         :param
@@ -144,11 +149,10 @@ class H5Dataset(torch.utils.data.Dataset):
         return input_patches, label_patches, scales
 
     def __getitem__(self, index):
-        if ratio is None:
-            ratio = np.random.choice(self.scale)
+        ratio = np.random.choice(self.scales)
 
         input_patches, label_patches = self.shape_to_patch(
-            self.input_array[index:index+1, ...], self.label_array["x%d" % ratio][index:index+1, ...])
+            self.input_array[index:index+1, ...], self.label_array["x%d" % ratio][index:index+1, ...], ratio)
 
         # augment data
         if self.phase == "train":
@@ -168,28 +172,28 @@ class H5Dataset(torch.utils.data.Dataset):
         return input_patches, label_patches, scales
 
 
-class DataLoader(multiproc.MyDataLoader):
-    """Hacky way to progressively load scales"""
+# class DataLoader(multiproc.MyDataLoader):
+#     """Hacky way to progressively load scales"""
 
-    def __init__(self, dataset, batch_size, scale=None):
-        self.dataset = dataset
-        super(DataLoader, self).__init__(
-            self.dataset,
-            batch_size=batch_size,
-            shuffle=(self.phase == Phase.TRAIN),
-            num_workers=16,
-            random_vars=copy.deepcopy(
-                dataset.scale) if self.phase == "train" else None,
-            sampler=None)
+#     def __init__(self, dataset, batch_size, scale=None):
+#         self.dataset = dataset
+#         super(DataLoader, self).__init__(
+#             self.dataset,
+#             batch_size=batch_size,
+#             shuffle=(self.phase == Phase.TRAIN),
+#             num_workers=16,
+#             random_vars=copy.deepcopy(
+#                 dataset.scale) if self.phase == "train" else None,
+#             sampler=None)
 
 
 if __name__ == "__main__":
     dataset = H5Dataset(
-        "train_poisson_5000_poisson_10000_poisson_20000_poisson_40000_poisson_80000.hdf5",
+        "train_poisson_310_poisson_625_poisson_1250_poisson_2500_poisson_5000_poisson_10000_poisson_20000_poisson_40000_poisson_80000.hdf5",
         num_shape_point=5000, num_patch_point=312)
 
     batch_size = 4
-    dataloader = torch.utils.data.DataLoader(dataset, 4)
+    dataloader = data.DataLoader(dataset, 4)
     for i, example in enumerate(dataloader):
         input_pc, label_pc, ratio = dataloader
         for b in range(batch_size):
