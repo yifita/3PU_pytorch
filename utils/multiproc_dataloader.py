@@ -2,7 +2,7 @@ import torch
 import torch.multiprocessing as multiprocessing
 from torch.utils.data.dataloader import (_DataLoaderIter, DataLoader,
                                          _worker_manager_loop, _set_SIGCHLD_handler, ExceptionWrapper,
-                                         pin_memory_batch)
+                                         pin_memory_batch, ManagerWatchdog)
 from torch._C import (_set_worker_signal_handlers, _update_worker_pids,
                       _remove_worker_pids, _error_if_any_worker_fails)
 import random
@@ -22,40 +22,58 @@ else:
 ##### overwrites #####
 
 
-def _worker_loop(dataset, index_queue, data_queue, collate_fn, seed, init_fn, worker_id):
-    global _use_shared_memory
-    _use_shared_memory = True
+def _worker_loop(dataset, index_queue, data_queue, done_event, collate_fn, seed, init_fn, worker_id):
+    # overwrite _worker_loop to call custom dataset.get
 
-    # Intialize C side signal handlers for SIGBUS and SIGSEGV. Python signal
-    # module's handlers are executed after Python returns from C low-level
-    # handlers, likely when the same fatal signal happened again already.
-    # https://docs.python.org/3/library/signal.html Sec. 18.8.1.1
-    _set_worker_signal_handlers()
+    try:
+        global _use_shared_memory
+        _use_shared_memory = True
 
-    torch.set_num_threads(1)
-    random.seed(seed)
-    torch.manual_seed(seed)
+        # Intialize C side signal handlers for SIGBUS and SIGSEGV. Python signal
+        # module's handlers are executed after Python returns from C low-level
+        # handlers, likely when the same fatal signal happened again already.
+        # https://docs.python.org/3/library/signal.html Sec. 18.8.1.1
+        _set_worker_signal_handlers()
 
-    if init_fn is not None:
-        init_fn(worker_id)
+        torch.set_num_threads(1)
+        random.seed(seed)
+        torch.manual_seed(seed)
 
-    while True:
-        # try:
-        #     r = index_queue.get(timeout=MANAGER_STATUS_CHECK_INTERVAL)
-        # except queue.Empty:
-        #     break
-        r = index_queue.get()
-        if r is None:
-            break
-        idx, random_var, batch_indices = r
-        try:
-            samples = collate_fn([dataset.get(i, random_var)
-                                  for i in batch_indices])
-        except Exception:
-            data_queue.put((idx, ExceptionWrapper(sys.exc_info())))
-        else:
-            data_queue.put((idx, samples))
-            del samples
+        data_queue.cancel_join_thread()
+
+        if init_fn is not None:
+            init_fn(worker_id)
+
+        watchdog = ManagerWatchdog()
+
+        while watchdog.is_alive():
+            try:
+                r = index_queue.get(timeout=MP_STATUS_CHECK_INTERVAL)
+            except queue.Empty:
+                continue
+            if r is None:
+                # Received the final signal
+                assert done_event.is_set()
+                return
+            elif done_event.is_set():
+                # Done event is set. But I haven't received the final signal
+                # (None) yet. I will keep continuing until get it, and skip the
+                # processing steps.
+                continue
+            idx, batch_indices, random_var = r
+            try:
+                samples = collate_fn([dataset.get(i, random_var)
+                                      for i in batch_indices])
+            except Exception:
+                # It is important that we don't store exc_info in a variable,
+                # see NOTE [ Python Traceback Reference Cycle Problem ]
+                data_queue.put((idx, ExceptionWrapper(sys.exc_info())))
+            else:
+                data_queue.put((idx, samples))
+                del samples
+    except KeyboardInterrupt:
+        # Main process will raise KeyboardInterrupt anyways.
+        pass
 
 
 class MyDataLoaderIter(_DataLoaderIter):

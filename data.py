@@ -6,12 +6,16 @@ from math import log
 import numpy as np
 import copy
 
-from utils import multiproc_dataloader as multiproc
+# from utils import multiproc_dataloader as multiproc
 from utils import pc_utils
 from operations import group_knn
 
 
 class H5Dataset(torch.utils.data.Dataset):
+    """
+    load the entire hdf5 file to memory
+    """
+
     def __init__(self, h5_path, num_shape_point, num_patch_point,
                  phase="train",
                  up_ratio=16, step_ratio=2,
@@ -66,10 +70,10 @@ class H5Dataset(torch.utils.data.Dataset):
             np.expand_dims(furthest_distance, axis=-1)
         label = {}
 
-        self.scale = []
+        self.scales = []
         for x in range(1, int(log(up_ratio, step_ratio)+1)):
             r = step_ratio**x
-            self.scale.append(r)
+            self.scales.append(r)
             closest_larger_equal = num_points[np.searchsorted(
                 num_points, num_in_point*r)]
             label["x%d" % r] = f[tag+"_%d" % closest_larger_equal][:, :, :3]
@@ -140,9 +144,6 @@ class H5Dataset(torch.utils.data.Dataset):
         return input_patches, label_patches, scales
 
     def __getitem__(self, index):
-        self.get(index, None)
-
-    def get(self, index, ratio=None):
         if ratio is None:
             ratio = np.random.choice(self.scale)
 
@@ -183,4 +184,18 @@ class DataLoader(multiproc.MyDataLoader):
 
 
 if __name__ == "__main__":
-    pass
+    dataset = H5Dataset(
+        "train_poisson_5000_poisson_10000_poisson_20000_poisson_40000_poisson_80000.hdf5",
+        num_shape_point=5000, num_patch_point=312)
+
+    batch_size = 4
+    dataloader = torch.utils.data.DataLoader(dataset, 4)
+    for i, example in enumerate(dataloader):
+        input_pc, label_pc, ratio = dataloader
+        for b in range(batch_size):
+            pc_utils.save_ply(input_pc[b], "./input-{}-{}.ply".format(i, b))
+            pc_utils.save_ply(label_pc[b], "./label-{}-{}.ply".format(i, b))
+        if i == 4:
+            dataset.scales = [2, 4]
+        if i == 9:
+            dataset.scales = [2]

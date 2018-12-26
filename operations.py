@@ -65,6 +65,7 @@ def search_index_pytorch(database, x, k, D=None, I=None):
         assert I.__class__ in (torch.LongTensor, torch.cuda.LongTensor)
         assert I.size() == (n, k)
         assert I.is_contiguous()
+
     torch.cuda.synchronize()
     xptr = x.storage().data_ptr()
     Iptr = I.storage().data_ptr()
@@ -198,7 +199,8 @@ def group_knn(k, query, points, unique=True, NCHW=True):
         indices_duplicated).to(device=D.device, dtype=torch.float32)
     D += torch.max(D)*indices_duplicated
     # (B,M,k)
-    distances, point_indices = torch.topk(-D, k, dim=-1, sorted=True)  # (B,M,k)
+    # (B,M,k)
+    distances, point_indices = torch.topk(-D, k, dim=-1, sorted=True)
     # (B,N,C)->(B,M,N,C), (B,M,k)->(B,M,k,C)
     knn_trans = torch.gather(points_trans.unsqueeze(1).expand(-1, query_trans.size(1), -1, -1),
                              2,
