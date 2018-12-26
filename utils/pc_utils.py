@@ -85,7 +85,7 @@ def normalize_point_cloud(input):
 
 
 def jitter_perturbation_point_cloud(batch_data, sigma=0.005, clip=0.02, is_2D=False):
-    """ 
+    """
     Randomly jitter points. jittering is per point.
     Input:
         batch_data: BxNx3 array, original batch of point clouds
@@ -95,7 +95,7 @@ def jitter_perturbation_point_cloud(batch_data, sigma=0.005, clip=0.02, is_2D=Fa
     B, N, C = batch_data.shape
     assert(clip > 0)
     chn = 2 if is_2D else 3
-    jittered_data = np.clip(sigma * np.random.randn(B, N, C), -clip, clip)
+    jittered_data = np.clip(sigma * np.random.randn(B, N, C, dtype=batch_data.dtype), -clip, clip)
     jittered_data[:, :, chn:] = 0
     jittered_data += batch_data
     return jittered_data
@@ -113,13 +113,13 @@ def rotate_point_cloud_and_gt(batch_data, batch_gt=None):
         angles = np.random.uniform(size=(3)) * 2 * np.pi
         Rx = np.array([[1, 0, 0],
                        [0, np.cos(angles[0]), -np.sin(angles[0])],
-                       [0, np.sin(angles[0]), np.cos(angles[0])]])
+                       [0, np.sin(angles[0]), np.cos(angles[0])]],dtype=batch_data.dtype)
         Ry = np.array([[np.cos(angles[1]), 0, np.sin(angles[1])],
                        [0, 1, 0],
-                       [-np.sin(angles[1]), 0, np.cos(angles[1])]])
+                       [-np.sin(angles[1]), 0, np.cos(angles[1])]],dtype=batch_data.dtype)
         Rz = np.array([[np.cos(angles[2]), -np.sin(angles[2]), 0],
                        [np.sin(angles[2]), np.cos(angles[2]), 0],
-                       [0, 0, 1]])
+                       [0, 0, 1]],dtype=batch_data.dtype)
         rotation_matrix = np.dot(Rz, np.dot(Ry, Rx))
 
         batch_data[k, ..., 0:3] = np.dot(
@@ -145,18 +145,15 @@ def random_scale_point_cloud_and_gt(batch_data, batch_gt=None, scale_low=0.5, sc
         Return:
             BxNx3 array, scaled batch of point clouds
     """
-    B, N, C = batch_data.get_shape().as_list()
-    scales = tf.random_uniform(
-        (B, 1, 1), minval=scale_low, maxval=scale_high, dtype=tf.float32)
+    B, N, C = batch_data.shape
+    scales = np.random.uniform(scale_low, scale_high, (B, 1, 1)).astype(batch_data.dtype)
 
-    batch_data = tf.concat(
-        [batch_data[:, :, :3] * scales, batch_data[:, :, 3:]], axis=-1)
+    batch_data = np.concatenate([batch_data[:,:,:3] * scales, batch_data[:,:,3:]], axis=-1)
 
     if batch_gt is not None:
-        batch_gt = tf.concat(
-            [batch_gt[:, :, :3] * scales, batch_gt[:, :, 3:]], axis=-1)
+        batch_gt = np.concatenate([batch_gt[:,:,:3] * scales, batch_gt[:,:,3:]], axis=-1)
 
-    return batch_data, batch_gt, tf.squeeze(scales)
+    return batch_data, batch_gt, np.squeeze(scales)
 
 
 def downsample_points(pts, K):
