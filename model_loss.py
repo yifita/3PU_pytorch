@@ -2,6 +2,7 @@ import torch
 
 import losses
 
+
 class NmDistanceFunction(torch.autograd.Function):
     """3D point set to 3D point set distance"""
     @staticmethod
@@ -12,7 +13,8 @@ class NmDistanceFunction(torch.autograd.Function):
         result_i = torch.empty(B, N, dtype=torch.int32, device=xyz1.device)
         result2 = torch.empty(B, M, dtype=xyz2.dtype, device=xyz2.device)
         result2_i = torch.empty(B, M, dtype=torch.int32, device=xyz2.device)
-        result, result_i, result2, result2_i = losses.nmdistance_forward(B, N, xyz1, M, xyz2, result, result_i, result2, result2_i)
+        result, result_i, result2, result2_i = losses.nmdistance_forward(
+            B, N, xyz1, M, xyz2, result, result_i, result2, result2_i)
         ctx.save_for_backward(xyz1, xyz2, result_i, result2_i)
         ctx.mark_non_differentiable(result_i, result2_i)
         return result, result_i, result2, result2_i
@@ -26,8 +28,8 @@ class NmDistanceFunction(torch.autograd.Function):
         d_xyz2 = torch.zeros_like(xyz2)
         gradient1, gradient2 = ctx.needs_input_grad
         d_input = losses.nmdistance_backward(B, N, xyz1, M, xyz2, d_dist1, idx1, d_dist2, idx2,
-            gradient1, gradient2,
-            d_xyz1, d_xyz2)
+                                             gradient1, gradient2,
+                                             d_xyz1, d_xyz2)
         if not gradient1:
             return None, d_input[0]
         if not gradient2:
@@ -40,6 +42,10 @@ nndistance = NmDistanceFunction.apply
 
 
 class ChamferLoss(torch.nn.Module):
+    """
+    chamfer loss. bidirectional nearest neighbor distance of two point sets.
+    """
+
     def __init__(self, threshold=None, forward_weight=1.0):
         super(ChamferLoss, self).__init__()
         # only consider distance smaller than threshold*mean(distance) (remove outlier)
@@ -59,16 +65,21 @@ class ChamferLoss(torch.nn.Module):
             assert(gt.size(1) == 3), "ChamferLoss is implemented for 3D points"
             gt = gt.transpose(2, 1).contiguous()
 
-        assert(pred.size(2) == 3 and gt.size(2) == 3), "ChamferLoss is implemented for 3D points"
+        assert(pred.size(2) == 3 and gt.size(2) ==
+               3), "ChamferLoss is implemented for 3D points"
         pred2gt, _, gt2pred, _ = NmDistanceFunction.apply(pred, gt)
 
         if self.threshold is not None:
             threshold = self.threshold
-            forward_threshold = torch.mean(pred2gt, dim=1, keepdim=True) * threshold
-            backward_threshold = torch.mean(gt2pred, dim=1, keepdim=True) * threshold
+            forward_threshold = torch.mean(
+                pred2gt, dim=1, keepdim=True) * threshold
+            backward_threshold = torch.mean(
+                gt2pred, dim=1, keepdim=True) * threshold
             # only care about distance within threshold (ignore strong outliers)
-            pred2gt = torch.where(pred2gt < forward_threshold, pred2gt, torch.zeros_like(pred2gt))
-            gt2pred = torch.where(gt2pred < backward_threshold, gt2pred, torch.zeros_like(gt2pred))
+            pred2gt = torch.where(
+                pred2gt < forward_threshold, pred2gt, torch.zeros_like(pred2gt))
+            gt2pred = torch.where(
+                gt2pred < backward_threshold, gt2pred, torch.zeros_like(gt2pred))
 
         # pred2gt is for each element in gt, the closest distance to this element
         pred2gt = torch.mean(pred2gt, dim=1)
@@ -80,8 +91,10 @@ class ChamferLoss(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    pc1 = torch.randn([2, 600, 3], dtype=torch.float64, requires_grad=True).cuda()
-    pc2 = torch.randn([2, 600, 3], dtype=torch.float64, requires_grad=True).cuda()
+    pc1 = torch.randn([2, 600, 3], dtype=torch.float64,
+                      requires_grad=True).cuda()
+    pc2 = torch.randn([2, 600, 3], dtype=torch.float64,
+                      requires_grad=True).cuda()
     chamfer = ChamferLoss()
     from torch.autograd import gradcheck
     # test = gradcheck(nndistance, [pc1, pc2], eps=1e-3, atol=1e-4)

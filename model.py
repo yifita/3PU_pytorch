@@ -3,11 +3,11 @@ import os
 import torch
 
 from model_loss import ChamferLoss
+from utils.pytorch_utils import load_network, save_network
 
 
 class Model(object):
     def __init__(self, net, phase, opt):
-        self.opt = opt
         self.net = net
 
         if phase == 'train':
@@ -19,19 +19,19 @@ class Model(object):
                                               betas=(0.9, 0.999))
 
         if opt.ckpt is not None:
-            self.load_network(opt.ckpt)
-            print(" Previous weight loaded {}".format(opt.resume))
+            self.step = load_network(opt.ckpt)
 
-    def set_input(self, input_pc, batch_radius, up_ratio, label_pc=None):
+    def set_input(self, input_pc, radius, up_ratio, label_pc=None):
         """
         :param
             input_pc       Bx3xN
-            batch_radius   Bx1
+            batch_radius   B
             up_ratio       int
             label_pc       Bx3xN'
         """
         self.input = input_pc.detach()
         self.up_ratio = up_ratio.detach()
+        self.radius = radius
         # gt point cloud
         if label_pc:
             self.gt = label_pc.detach()
@@ -39,10 +39,17 @@ class Model(object):
             self.gt = None
 
     def forward(self):
-        self.predicted, self.batch_radius = self.net(
-            self.input, ratio=self.up_ratio, gt=self.gt)  # Bx1024 encoded
+        if phase == "train":
+            self.predicted, self.gt = self.net(
+                self.input, ratio=self.up_ratio, gt=self.gt)  # Bx1024 encoded
+        else:
+            self.predicted = self.net(
+                self.input, ratio=self.up_ratio, gt=self.gt)  # Bx1024 encoded
 
     def optimize(self, epoch=None):
+        """
+        run forward and backward, apply gradients
+        """
         self.optimizer.zero_grad()
 
         self.net.train()
@@ -52,9 +59,7 @@ class Model(object):
         loss.backward()
         torch.nn.utils.clip_grad_value_(self.net.parameters(), 1)
         self.optimizer.step()
-
-    def update_progress(self):
-        pass
+        self.step += 1
 
     def compute_chamfer_loss(self, pc, pc_label):
         loss_chamfer = self.chamfer_criteria(pc_label.transpose(

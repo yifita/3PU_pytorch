@@ -37,7 +37,11 @@ class H5Dataset(data.Dataset):
         self.step_ratio = step_ratio
         self.input_array, self.label_array = self.load_patch_data(
             h5_path, up_ratio, step_ratio, num_shape_point)
-        self.scales = [step_ratio**r for r in range(1, int(log(up_ratio, step_ratio))+1)]
+        self.all_scales = [step_ratio **
+                           r for r in range(1, int(log(up_ratio, step_ratio))+1)]
+        self.curr_scales = [step_ratio **
+                            r for r in range(1, int(log(up_ratio, step_ratio))+1)]
+        self.combined = True
 
     def __len__(self):
         return 300*self.batch_size
@@ -152,25 +156,51 @@ class H5Dataset(data.Dataset):
         return input_patches, label_patches, scales
 
     def __getitem__(self, index):
-        ratio = self.scales[np.random.randint(len(self.scales))]
+        if self.is_combined:
+            ratio = self.curr_scales[np.random.randint(len(self.curr_scales))]
+        else:
+            ratio = self.curr_scales[-1]
+
         index = index % self.input_array.shape[0]
         input_patches, label_patches = self.shape_to_patch(
             self.input_array[index:index+1, ...], self.label_array["x%d" % ratio][index:index+1, ...], ratio)
         # augment data
         if self.phase == "train":
-            input_patches, label_patches, scales = self.augment(
+            input_patches, label_patches, radius = self.augment(
                 input_patches, label_patches)
         else:
             # normalize using the same mean and radius
             label_patches, centroid, furthest_distance = pc_utils.normalize_point_cloud(
                 label_patches)
             input_patches = (input_patches - centroid) / furthest_distance
-            scales = np.ones([B, 1], dtype=np.float32)
+            radius = np.ones([B, 1], dtype=np.float32)
 
         input_patches = torch.from_numpy(input_patches).transpose(2, 1)
         label_patches = torch.from_numpy(label_patches).transpose(2, 1)
-        scales = torch.from_numpy(scales)
-        return input_patches, label_patches, scales, ratio
+        radius = torch.from_numpy(radius)
+        return input_patches, label_patches, radius, ratio
+
+    def get_ratios(self):
+        return self.curr_scales
+
+    def set_max_ratio(self, max_ratio):
+        idx = self.all_scales.index(max_ratio)
+        self.curr_scales = self.all_scales[:(idx+1)]
+
+    def add_next_ratio(self, k):
+        diff = len(self.all_scales) - len(self.curr_scales)
+        is_complete = (diff <= 0)
+        if not is_complete:
+            self.curr_scales.append(
+                self.all_scales[len(self.curr_scales)])
+        else:
+            logger.info("Dataset has reached the maximal ratio")
+
+    def set_combined(self):
+        self.combined = True
+
+    def unset_combined(self):
+        self.combined = False
 
 
 if __name__ == "__main__":
@@ -184,15 +214,16 @@ if __name__ == "__main__":
         input_pc, label_pc, scale, ratio = example
         ratio = ratio.item()
         print(ratio)
-        input_pc = input_pc[0].transpose(2,1)
-        label_pc = label_pc[0].transpose(2,1)
+        input_pc = input_pc[0].transpose(2, 1)
+        label_pc = label_pc[0].transpose(2, 1)
 
-        pc_utils.save_ply(input_pc[0].numpy(), "./input-{}x{}.ply".format(i, ratio))
-        pc_utils.save_ply(label_pc[0].numpy(), "./label-{}x{}.ply".format(i, ratio))
+        pc_utils.save_ply(input_pc[0].numpy(),
+                          "./input-{}x{}.ply".format(i, ratio))
+        pc_utils.save_ply(label_pc[0].numpy(),
+                          "./label-{}x{}.ply".format(i, ratio))
         if i == 4:
             dataset.scales = [2, 4]
         if i == 9:
             dataset.scales = [2, 4, 16]
         if i >= 20:
             break
-
