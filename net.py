@@ -136,11 +136,11 @@ class Net(torch.nn.Module):
                     patch_xyz = xyz
 
                 # Bx3x(N*r) and BxCx(N*r)
-                tmp, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
+                xyz, features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     patch_xyz, previous_level4=(old_xyz, old_features))
-                # cache xyz next level feature propagation
+                # cache input xyz for feature propagation
                 old_xyz = patch_xyz
-                xyz = tmp
+                old_features = features
                 # merge patches in testing
                 if not self.training and (patch_xyz.shape[0] != batch_size):
                     xyz = torch.cat(
@@ -156,8 +156,12 @@ class Net(torch.nn.Module):
             else:
                 # Bx3x(N*r) and BxCx(N*r)
                 old_xyz = xyz
-                xyz, old_features, batch_centers, batch_radius = self.levels['level_%d' % l](
+                xyz, features, batch_centers, batch_radius = self.levels['level_%d' % l](
                     xyz, previous_level4=None)
+                old_features = features
+
+            # for visualization
+            self.vis["level_%d" % l] = (old_xyz, old_features)
 
         if self.training:
             return xyz, gt

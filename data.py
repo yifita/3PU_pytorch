@@ -38,6 +38,7 @@ class H5Dataset(data.Dataset):
         self.input_array, self.label_array = self.load_patch_data(
             h5_path, up_ratio, step_ratio, num_shape_point)
         self.scales = [step_ratio**r for r in range(1, int(log(up_ratio, step_ratio))+1)]
+        print("Created H5 dataset, num_shape_point = {}, num_patch_point = {}, scales = {}".format(num_shape_point, num_patch_point, scales))
 
     def __len__(self):
         return 300*self.batch_size
@@ -130,17 +131,19 @@ class H5Dataset(data.Dataset):
             input_pc = pc_utils.jitter_perturbation_point_cloud(
                 input_pc, sigma=self.jitter_sigma, clip=self.jitter_max)
 
-        input_patches, label_patches = pc_utils.rotate_point_cloud_and_gt(
-            input_patches, label_patches)
-
         # normalize using the same mean and radius
         label_patches, centroid, furthest_distance = pc_utils.normalize_point_cloud(
             label_patches)
         input_patches = (input_patches - centroid) / furthest_distance
 
-        input_patches, label_patches, scales = pc_utils.random_scale_point_cloud_and_gt(
-            input_patches, label_patches,
-            scale_low=0.8, scale_high=1.2)
+        # random rotation
+        input_patches, label_patches = pc_utils.rotate_point_cloud_and_gt(
+            input_patches, label_patches)
+
+        # # random scaling
+        # input_patches, label_patches, scales = pc_utils.random_scale_point_cloud_and_gt(
+        #     input_patches, label_patches,
+        #     scale_low=0.8, scale_high=1.2)
 
         # randomly discard input
         if self.drop_out < 1:
@@ -149,7 +152,7 @@ class H5Dataset(data.Dataset):
                 :num_point]
             input_patches = input_patches[:, point_idx, :]
 
-        return input_patches, label_patches, scales
+        return input_patches, label_patches
 
     def __getitem__(self, index):
         ratio = self.scales[np.random.randint(len(self.scales))]
@@ -158,7 +161,7 @@ class H5Dataset(data.Dataset):
             self.input_array[index:index+1, ...], self.label_array["x%d" % ratio][index:index+1, ...], ratio)
         # augment data
         if self.phase == "train":
-            input_patches, label_patches, scales = self.augment(
+            input_patches, label_patches = self.augment(
                 input_patches, label_patches)
         else:
             # normalize using the same mean and radius
@@ -169,8 +172,7 @@ class H5Dataset(data.Dataset):
 
         input_patches = torch.from_numpy(input_patches).transpose(2, 1)
         label_patches = torch.from_numpy(label_patches).transpose(2, 1)
-        scales = torch.from_numpy(scales)
-        return input_patches, label_patches, scales, ratio
+        return input_patches, label_patches, ratio
 
 
 if __name__ == "__main__":
@@ -181,7 +183,7 @@ if __name__ == "__main__":
 
     dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True)
     for i, example in enumerate(dataloader):
-        input_pc, label_pc, scale, ratio = example
+        input_pc, label_pc, ratio = example
         ratio = ratio.item()
         print(ratio)
         input_pc = input_pc[0].transpose(2,1)

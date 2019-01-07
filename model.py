@@ -22,11 +22,10 @@ class Model(object):
             self.load_network(opt.ckpt)
             print(" Previous weight loaded {}".format(opt.resume))
 
-    def set_input(self, input_pc, batch_radius, up_ratio, label_pc=None):
+    def set_input(self, input_pc, up_ratio, label_pc=None):
         """
         :param
             input_pc       Bx3xN
-            batch_radius   Bx1
             up_ratio       int
             label_pc       Bx3xN'
         """
@@ -40,7 +39,7 @@ class Model(object):
 
     def forward(self):
         self.predicted, self.batch_radius = self.net(
-            self.input, ratio=self.up_ratio, gt=self.gt)  # Bx1024 encoded
+            self.input, ratio=self.up_ratio, gt=self.gt)
 
     def optimize(self, epoch=None):
         self.optimizer.zero_grad()

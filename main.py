@@ -112,8 +112,26 @@ net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
 
 
 def train(net):
+    net.to(DEVICE)
+    net.train()
     model = Model(net, "train", FLAGS)
     # data loader
+    if TRAIN_H5 is not None:
+        from data import H5Dataset
+        dataset = H5Dataset(
+            num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT, batch_size=BATCH_SIZE)
+        dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True, num_workers=4)
+    
+    for i, example in enumerate(dataloader):
+        input_pc, label_pc, ratio = example
+        model.set_input(input_pc, ratio, label_pc)
+
+        if i == 4:
+            dataset.scales = [2, 4]
+        if i == 9:
+            dataset.scales = [2, 4, 16]
+        if i >= 20:
+            break
 
 
 def pc_prediction(net, input_pc, patch_num_ratio=3):
@@ -145,10 +163,86 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
         input_list.append(patch)
         up_point_list.append(up_point)
 
-    # up_point = torch.cat(up_point_list, dim=-1)
-    # input_point = torch.cat(input_list, dim=-1)
-
     return input_list, up_point_list
+
+
+def pc_visualization(net, input_pc, patch_num_ratio=3):
+    """
+    upsample patches of a point cloud
+    :param
+        input_pc        1x3xN
+        patch_num_ratio int, impacts number of patches and overlapping
+    :return
+        input_list      list of [3xM]
+        up_point_list   list of [3xMr]
+    """
+    # divide to patches
+    num_patches = int(input_pc.shape[2] / NUM_POINT * patch_num_ratio)
+    # FPS sampling
+    start = time.time()
+    _, seeds = operations.furthest_point_sample(
+        input_pc, num_patches, NCHW=True)
+    print("number of patches: %d" % seeds.shape[0])
+    vis_xyz = {}
+    vis_feat = {}
+
+    patches, _, _ = operations.group_knn(
+        NUM_POINT, seeds, input_pc, NCHW=True)
+
+    for k in tqdm(range(num_patches)):
+        patch = patches[:, :, k, :]
+        net.forward(patch.detach(), ratio=UP_RATIO)
+        for k in net.vis:
+            xyz, feat = net.vis[k]
+            vis_xyz[k].append(xyz)
+            vis_feat[k].append(feat)
+
+    return vis_xyz, vis_feat
+
+
+def vis(result_dir):
+    """
+    upsample a point cloud
+    """
+    # loaded_states = np.load(CKPT).item()
+    # net.load_state_dict(loaded_states)
+    # pytorch_utils.save_network(net, os.path.dirname(CKPT), "final", "poisson")
+    pytorch_utils.load_network(net, CKPT)
+    net.to(DEVICE)
+    net.eval()
+    test_files = glob(TEST_DATA, recursive=True)
+    for point_path in test_files:
+        folder = os.path.basename(os.path.dirname(point_path))
+        path = os.path.join(result_dir, folder,
+                            point_path.split('/')[-1][:-4]+'.ply')
+        data = pc_utils.load(point_path, NUM_SHAPE_POINT)
+        data = data[np.newaxis, ...]
+        num_shape_point = data.shape[1] * FLAGS.drop_out
+        
+        # transpose to NCHW format
+        data = torch.from_numpy(data).transpose(2, 1).to(device=DEVICE)
+        
+        logger.info(os.path.basename(point_path))
+        start = time.time()
+        with torch.no_grad():
+            # 1x3xN
+            xyz_level_list, feat_level_list = pc_visualization(
+                net, data, patch_num_ratio=PATCH_NUM_RATIO)
+
+        for k in xyz_level_list:
+            xyz = torch.cat(xyz_level_list[k], dim=-1)
+            feat = torch.cat(feat_level_list[k], dim=-1)
+            # remove overlapping points and feat
+
+            xyz = xyz.transpose(2, 1).cpu().numpy()
+            xyz = (xyz * furthest_distance) + centroid
+            xyz = xyz[0, ...]
+
+        # data = input_pc.transpose(2, 1).cpu().numpy()
+        # data = (data * furthest_distance) + centroid
+        # data = data[0,...]
+        pc_utils.save_ply(data, path[:-4]+'_input.ply')
+        pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
 
 
 def test(result_dir):
@@ -169,20 +263,20 @@ def test(result_dir):
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
+        if FLAGS.drop_out < 1:
+            _, data = operations.furthest_point_sample(
+                data, int(num_shape_point))
         # normalize "unnecessarily" to apply noise
         data, centroid, furthest_distance = pc_utils.normalize_point_cloud(
             data)
         is_2D = np.all(data[:, :, 2] == 0)
-        if FLAGS.drop_out < 1:
-            _, data = operations.furthest_point_sample(
-                data, int(num_shape_point))
         if JITTER:
             data = pc_utils.jitter_perturbation_point_cloud(
                 data, sigma=FLAGS.jitter_sigma, clip=FLAGS.jitter_max, is_2D=is_2D)
 
         # transpose to NCHW format
         data = torch.from_numpy(data).transpose(2, 1).to(device=DEVICE)
-        # get the edge information
+        
         logger.info(os.path.basename(point_path))
         start = time.time()
         with torch.no_grad():
@@ -209,11 +303,9 @@ def test(result_dir):
         data = data[0, ...]
         pred_pc = pred_pc[0, ...]
 
-        # data = input_pc.transpose(2, 1).cpu().numpy()
-        # data = (data * furthest_distance) + centroid
-        # data = data[0,...]
         pc_utils.save_ply(data, path[:-4]+'_input.ply')
         pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
+
 
 
 if __name__ == "__main__":
@@ -239,6 +331,10 @@ if __name__ == "__main__":
 
     result_path = FLAGS.result_dir or os.path.join(
         MODEL_DIR, 'result', 'x%d' % (UP_RATIO), "_".join(append_name))
+    
     if PHASE == "test":
         assert(CKPT is not None)
+        test(result_path)
+    elif PHASE == "vis":
+        assert(CKPT is not None)    
         test(result_path)

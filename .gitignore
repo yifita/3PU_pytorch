@@ -1,5 +1,11 @@
 *.pyc
 *.o
 *.egg
-sampling/sampling.egg-info/*
+output/
+sampling/sampling.egg-info/
 sampling/build
+losses/build
+losses/sampling.egg-info/
+.mypy_cache/
+.vscode
+
