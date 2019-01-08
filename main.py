@@ -36,8 +36,8 @@ parser.add_argument('--up_ratio', type=int, default=16,
                     help='Upsampling Ratio [default: 2]')
 parser.add_argument('--max_epoch', type=int, default=160,
                     help='Epoch to run [default: 500]')
-parser.add_argument('--batch_size', type=int, default=28,
-                    help='Batch Size during training [default: 32]')
+parser.add_argument('--batch_size', type=int, default=16,
+                    help='Batch Size during training')
 parser.add_argument('--h5_data', help='h5 file for training')
 parser.add_argument('--record_data', help='record file for training')
 parser.add_argument('--test_data', help='test data path')
@@ -98,6 +98,7 @@ FM_KNN = FLAGS.fm_knn
 KNN = FLAGS.knn
 GROWTH_RATE = FLAGS.growth_rate
 DENSE_N = FLAGS.dense_n
+CD_THRESHOLD = FLAGS.cd_threshold
 
 UP_RATIO = FLAGS.up_ratio
 TRAIN_H5 = FLAGS.h5_data
@@ -112,6 +113,15 @@ net = Net(max_up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
           knn=KNN, growth_rate=GROWTH_RATE, dense_n=DENSE_N, fm_knn=FM_KNN)
 
 
+def get_stage_progress(step):
+    """
+    return the stage (an integer from 0) and progress (float 0~1)
+    """
+    stage = (step + STAGE_STEPS) // (2*STAGE_STEPS)
+    progress = (step + STAGE_STEPS) / (2*STAGE_STEPS) - stage
+    return stage, progress
+
+
 def train(net):
     net.to(DEVICE)
     net.train()
@@ -120,15 +130,28 @@ def train(net):
     if TRAIN_H5 is not None:
         from data import H5Dataset
         dataset = H5Dataset(
-            num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT, batch_size=BATCH_SIZE)
-        dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True, num_workers=4)
-    dataset = H5Dataset(TRAIN_H5, up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
-                        num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT, batch_size=BATCH_SIZE)
-    dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True)
+            num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT,
+            batch_size=BATCH_SIZE)
+        dataloader = data.DataLoader(
+            dataset, batch_size=1, pin_memory=True, num_workers=4)
+
     start_epoch = model.step / len(dataloader)
-    start_ratio = STEP_RATIO ** int((model.step +
-                                     STAGE_STEPS) / (2*STAGE_STEPS)+1)
+    # whenever progress is changed, we need to update:
+    # 1. chamferloss threshold
+    # 2. dataset.combined
+    # 3. dataset.curr_threshold
+    stage, progress = get_stage_progress(model.step)
+    start_ratio = STEP_RATIO ** (stage + 1)
     dataset.set_max_ratio(start_ratio)
+    if progress > 0.5:
+        dataset.set_combined()
+        if progress > 0.6:
+            model.chamfer_criteria.set_threshold(CD_THRESHOLD)
+    else:
+        model.chamfer_criteria.unset_threshold()
+        dataset.unset_combined()
+
+    dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True)
     for epoch in range(start_epoch+1, MAX_EPOCH):
         for i, examples in enumerate(dataloader):
             input_pc, label_pc, scale, ratio = example
@@ -136,15 +159,22 @@ def train(net):
             input_pc = input_pc[0].transpose(2, 1)
             label_pc = label_pc[0].transpose(2, 1)
             model.set_input(input_pc, scale, ratio, label_pc=label_pc)
+            # run gradient decent and increment model.step
             model.optimize()
+            new_stage, new_progress = get_stage_progress(model.step)
             # advance to the next training stage with an added ratio
-            # when current step is the an even multiple of stage_steps
-            if (model.step + STAGE_STEPS) % (2*STAGE_STEPS) == 0:
+            if stage + 1 == new_stage:
                 dataset.add_next_ratio()
                 dataset.unset_combined()
-            # advance to the combined stage when a odd multiple of stage_steps
-            if (model.step + STAGE_STEPS) % (STAGE_STEPS) == 0 and ((model.step + STAGE_STEPS) / STAGE_STEPS) % 2 == 1:
+                model.chamfer_criteria.unset_threshold()
+            # advance to the combined stage
+            if progress <= 0.5 and new_progress > 0.5:
                 dataset.set_combined()
+            # chamfer loss set ignore threshold
+            if new_progress > 0.6:
+                model.chamfer_criteria.set_threshold(CD_THRESHOLD)
+            stage, progress = new_stage, new_progress
+
 
 def pc_prediction(net, input_pc, patch_num_ratio=3):
     """
@@ -230,10 +260,10 @@ def vis(result_dir):
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
-        
+
         # transpose to NCHW format
         data = torch.from_numpy(data).transpose(2, 1).to(device=DEVICE)
-        
+
         logger.info(os.path.basename(point_path))
         start = time.time()
         with torch.no_grad():
@@ -288,7 +318,7 @@ def test(result_dir):
 
         # transpose to NCHW format
         data = torch.from_numpy(data).transpose(2, 1).to(device=DEVICE)
-        
+
         logger.info(os.path.basename(point_path))
         start = time.time()
         with torch.no_grad():
@@ -319,7 +349,6 @@ def test(result_dir):
         pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
 
 
-
 if __name__ == "__main__":
     append_name = []
     if NUM_POINT is None:
@@ -343,10 +372,10 @@ if __name__ == "__main__":
 
     result_path = FLAGS.result_dir or os.path.join(
         MODEL_DIR, 'result', 'x%d' % (UP_RATIO), "_".join(append_name))
-    
+
     if PHASE == "test":
         assert(CKPT is not None)
         test(result_path)
     elif PHASE == "vis":
-        assert(CKPT is not None)    
+        assert(CKPT is not None)
         test(result_path)

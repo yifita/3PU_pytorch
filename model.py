@@ -11,7 +11,7 @@ class Model(object):
         self.net = net
 
         if phase == 'train':
-            self.chamfer_criteria = ChamferLoss(threshold=opt.CD_threshold)
+            self.chamfer_criteria = ChamferLoss()
             self.old_lr = opt.lr_init
             self.lr = opt.lr_init
             self.optimizer = torch.optim.Adam(self.net.parameters(),

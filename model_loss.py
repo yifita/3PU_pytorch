@@ -49,8 +49,14 @@ class ChamferLoss(torch.nn.Module):
     def __init__(self, threshold=None, forward_weight=1.0):
         super(ChamferLoss, self).__init__()
         # only consider distance smaller than threshold*mean(distance) (remove outlier)
-        self.threshold = threshold
+        self.__threshold = threshold
         self.forward_weight = forward_weight
+
+    def set_threshold(self, value):
+        self.__threshold = value
+
+    def unset_threshold(self):
+        self.__threshold = None
 
     def forward(self, pred, gt):
         assert(pred.dim() == 3 and gt.dim() == 3), \
@@ -69,8 +75,8 @@ class ChamferLoss(torch.nn.Module):
                3), "ChamferLoss is implemented for 3D points"
         pred2gt, _, gt2pred, _ = NmDistanceFunction.apply(pred, gt)
 
-        if self.threshold is not None:
-            threshold = self.threshold
+        if self.__threshold is not None:
+            threshold = self.__threshold
             forward_threshold = torch.mean(
                 pred2gt, dim=1, keepdim=True) * threshold
             backward_threshold = torch.mean(
