@@ -12,6 +12,7 @@ from model import Model
 from utils import pc_utils, pytorch_utils
 from misc import logger
 import operations
+from data import H5Dataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--phase', default='test',
@@ -121,18 +122,29 @@ def train(net):
         dataset = H5Dataset(
             num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT, batch_size=BATCH_SIZE)
         dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True, num_workers=4)
-    
-    for i, example in enumerate(dataloader):
-        input_pc, label_pc, ratio = example
-        model.set_input(input_pc, ratio, label_pc)
-
-        if i == 4:
-            dataset.scales = [2, 4]
-        if i == 9:
-            dataset.scales = [2, 4, 16]
-        if i >= 20:
-            break
-
+    dataset = H5Dataset(TRAIN_H5, up_ratio=UP_RATIO, step_ratio=STEP_RATIO,
+                        num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT, batch_size=BATCH_SIZE)
+    dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True)
+    start_epoch = model.step / len(dataloader)
+    start_ratio = STEP_RATIO ** int((model.step +
+                                     STAGE_STEPS) / (2*STAGE_STEPS)+1)
+    dataset.set_max_ratio(start_ratio)
+    for epoch in range(start_epoch+1, MAX_EPOCH):
+        for i, examples in enumerate(dataloader):
+            input_pc, label_pc, scale, ratio = example
+            ratio = ratio.item()
+            input_pc = input_pc[0].transpose(2, 1)
+            label_pc = label_pc[0].transpose(2, 1)
+            model.set_input(input_pc, scale, ratio, label_pc=label_pc)
+            model.optimize()
+            # advance to the next training stage with an added ratio
+            # when current step is the an even multiple of stage_steps
+            if (model.step + STAGE_STEPS) % (2*STAGE_STEPS) == 0:
+                dataset.add_next_ratio()
+                dataset.unset_combined()
+            # advance to the combined stage when a odd multiple of stage_steps
+            if (model.step + STAGE_STEPS) % (STAGE_STEPS) == 0 and ((model.step + STAGE_STEPS) / STAGE_STEPS) % 2 == 1:
+                dataset.set_combined()
 
 def pc_prediction(net, input_pc, patch_num_ratio=3):
     """

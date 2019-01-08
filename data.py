@@ -37,8 +37,11 @@ class H5Dataset(data.Dataset):
         self.step_ratio = step_ratio
         self.input_array, self.label_array = self.load_patch_data(
             h5_path, up_ratio, step_ratio, num_shape_point)
-        self.scales = [step_ratio**r for r in range(1, int(log(up_ratio, step_ratio))+1)]
-        print("Created H5 dataset, num_shape_point = {}, num_patch_point = {}, scales = {}".format(num_shape_point, num_patch_point, scales))
+        self.all_scales = [step_ratio **
+                           r for r in range(1, int(log(up_ratio, step_ratio))+1)]
+        self.curr_scales = [step_ratio **
+                            r for r in range(1, int(log(up_ratio, step_ratio))+1)]
+        self.combined = True
 
     def __len__(self):
         return 300*self.batch_size
@@ -155,7 +158,11 @@ class H5Dataset(data.Dataset):
         return input_patches, label_patches
 
     def __getitem__(self, index):
-        ratio = self.scales[np.random.randint(len(self.scales))]
+        if self.is_combined:
+            ratio = self.curr_scales[np.random.randint(len(self.curr_scales))]
+        else:
+            ratio = self.curr_scales[-1]
+
         index = index % self.input_array.shape[0]
         input_patches, label_patches = self.shape_to_patch(
             self.input_array[index:index+1, ...], self.label_array["x%d" % ratio][index:index+1, ...], ratio)
@@ -168,7 +175,7 @@ class H5Dataset(data.Dataset):
             label_patches, centroid, furthest_distance = pc_utils.normalize_point_cloud(
                 label_patches)
             input_patches = (input_patches - centroid) / furthest_distance
-            scales = np.ones([B, 1], dtype=np.float32)
+            radius = np.ones([B, 1], dtype=np.float32)
 
         input_patches = torch.from_numpy(input_patches).transpose(2, 1)
         label_patches = torch.from_numpy(label_patches).transpose(2, 1)
@@ -186,15 +193,16 @@ if __name__ == "__main__":
         input_pc, label_pc, ratio = example
         ratio = ratio.item()
         print(ratio)
-        input_pc = input_pc[0].transpose(2,1)
-        label_pc = label_pc[0].transpose(2,1)
+        input_pc = input_pc[0].transpose(2, 1)
+        label_pc = label_pc[0].transpose(2, 1)
 
-        pc_utils.save_ply(input_pc[0].numpy(), "./input-{}x{}.ply".format(i, ratio))
-        pc_utils.save_ply(label_pc[0].numpy(), "./label-{}x{}.ply".format(i, ratio))
+        pc_utils.save_ply(input_pc[0].numpy(),
+                          "./input-{}x{}.ply".format(i, ratio))
+        pc_utils.save_ply(label_pc[0].numpy(),
+                          "./label-{}x{}.ply".format(i, ratio))
         if i == 4:
             dataset.scales = [2, 4]
         if i == 9:
             dataset.scales = [2, 4, 16]
         if i >= 20:
             break
-

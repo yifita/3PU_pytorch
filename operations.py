@@ -4,7 +4,8 @@ import numpy as np
 
 import sampling
 
-from faiss_setup import GPU_RES
+if torch.cuda.is_available():
+    from faiss_setup import GPU_RES
 
 
 def normalize_point_batch(pc, NCHW=True):
