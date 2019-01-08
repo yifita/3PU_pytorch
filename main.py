@@ -4,6 +4,7 @@ import time
 import numpy as np
 from tqdm import tqdm
 from glob import glob
+from collections import defaultdict
 
 import torch
 
@@ -192,7 +193,7 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
     start = time.time()
     _, seeds = operations.furthest_point_sample(
         input_pc, num_patches, NCHW=True)
-    print("number of patches: %d" % seeds.shape[0])
+    print("number of patches: %d" % seeds.shape[-1])
     input_list = []
     up_point_list = []
 
@@ -224,9 +225,9 @@ def pc_visualization(net, input_pc, patch_num_ratio=3):
     start = time.time()
     _, seeds = operations.furthest_point_sample(
         input_pc, num_patches, NCHW=True)
-    print("number of patches: %d" % seeds.shape[0])
-    vis_xyz = {}
-    vis_feat = {}
+    print("number of patches: %d" % seeds.shape[-1])
+    vis_xyz = defaultdict(list)
+    vis_feat = defaultdict(list)
 
     patches, _, _ = operations.group_knn(
         NUM_POINT, seeds, input_pc, NCHW=True)
@@ -246,6 +247,7 @@ def vis(result_dir):
     """
     upsample a point cloud
     """
+    from sklearn.manifold import TSNE
     # loaded_states = np.load(CKPT).item()
     # net.load_state_dict(loaded_states)
     # pytorch_utils.save_network(net, os.path.dirname(CKPT), "final", "poisson")
@@ -255,8 +257,8 @@ def vis(result_dir):
     test_files = glob(TEST_DATA, recursive=True)
     for point_path in test_files:
         folder = os.path.basename(os.path.dirname(point_path))
-        path = os.path.join(result_dir, folder,
-                            point_path.split('/')[-1][:-4]+'.ply')
+        out_path = os.path.join(result_dir, folder,
+                                point_path.split('/')[-1][:-4]+'.ply')
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
@@ -274,26 +276,26 @@ def vis(result_dir):
         for k in xyz_level_list:
             xyz = torch.cat(xyz_level_list[k], dim=-1)
             feat = torch.cat(feat_level_list[k], dim=-1)
-            # remove overlapping points and feat
-
             xyz = xyz.transpose(2, 1).cpu().numpy()
-            xyz = (xyz * furthest_distance) + centroid
             xyz = xyz[0, ...]
-
-        # data = input_pc.transpose(2, 1).cpu().numpy()
-        # data = (data * furthest_distance) + centroid
-        # data = data[0,...]
-        pc_utils.save_ply(data, path[:-4]+'_input.ply')
-        pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
+            feat = feat.transpose(2, 1).cpu().numpy()
+            feat = feat[0, ...]
+            # remove overlapping points and their feat
+            xyz, indices = np.unique(xyz, return_index=True, axis=0)
+            feat = feat[indices, :]
+            tsne = TSNE(n_components=1, perplexity=20)
+            print("fitting tsne for {}".format(k))
+            embedded = tsne.fit_transform(feat)
+            print(embedded.shape)
+            pc_utils.save_ply_property(
+                xyz, embedded, out_path[:-4]+'_{}.ply'.format(k),
+                cmap_name='rainbow')
 
 
 def test(result_dir):
     """
     upsample a point cloud
     """
-    # loaded_states = np.load(CKPT).item()
-    # net.load_state_dict(loaded_states)
-    # pytorch_utils.save_network(net, os.path.dirname(CKPT), "final", "poisson")
     pytorch_utils.load_network(net, CKPT)
     net.to(DEVICE)
     net.eval()
@@ -378,4 +380,4 @@ if __name__ == "__main__":
         test(result_path)
     elif PHASE == "vis":
         assert(CKPT is not None)
-        test(result_path)
+        vis(result_path)

@@ -161,6 +161,7 @@ class Net(torch.nn.Module):
                 old_features = features
 
             # for visualization
+            self.vis = {}
             self.vis["level_%d" % l] = (old_xyz, old_features)
 
         if self.training:
