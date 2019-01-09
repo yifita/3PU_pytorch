@@ -137,7 +137,9 @@ class Net(torch.nn.Module):
 
                 # Bx3x(N*r) and BxCx(N*r)
                 xyz, features, batch_centers, batch_radius = self.levels['level_%d' % l](
-                    patch_xyz, previous_level4=(old_xyz, old_features))
+                    patch_xyz, previous_level4=(old_xyz, old_features),
+                    **kwargs)
+
                 # cache input xyz for feature propagation
                 old_xyz = patch_xyz
                 old_features = features
@@ -157,12 +159,17 @@ class Net(torch.nn.Module):
                 # Bx3x(N*r) and BxCx(N*r)
                 old_xyz = xyz
                 xyz, features, batch_centers, batch_radius = self.levels['level_%d' % l](
-                    xyz, previous_level4=None)
+                    xyz, previous_level4=None, **kwargs)
                 old_features = features
 
             # for visualization
-            self.vis = {}
-            self.vis["level_%d" % l] = (old_xyz, old_features)
+            if "phase" in kwargs and kwargs["phase"] == "vis":
+                self.vis = {}
+                self.vis["level_%d" % l] = (old_xyz, old_features)
+                for k, v in self.levels["level_%d" % l].vis.items():
+                    v = torch.cat(
+                        torch.split(v, batch_size, dim=0), dim=2)
+                    self.vis["level_{}.{}".format(l, k)] = (old_xyz, v)
 
         if self.training:
             return xyz, gt
@@ -173,7 +180,7 @@ class Net(torch.nn.Module):
 class Level(torch.nn.Module):
     """3PU per-level network"""
 
-    def __init__(self, dense_n=3, growth_rate=12, knn=16, fm_knn=5, step_ratio=4):
+    def __init__(self, dense_n=3, growth_rate=12, knn=16, fm_knn=5, step_ratio=2):
         super(Level, self).__init__()
         self.dense_n = dense_n
         self.fm_knn = fm_knn
@@ -250,7 +257,7 @@ class Level(torch.nn.Module):
                               num_grid_point).view(1, num_grid_point)
         return grid
 
-    def forward(self, xyz, previous_level4=None):
+    def forward(self, xyz, previous_level4=None, **kwargs):
         """
         :param
             xyz             Bx3xN input xyz, unnormalized
@@ -267,11 +274,24 @@ class Level(torch.nn.Module):
         xyz_normalized, centroid, radius = operations.normalize_point_batch(
             xyz, NCHW=True)
 
+        if "phase" in kwargs and kwargs["phase"] == "vis":
+            self.vis = {}
+
         x = self.layer0(xyz_normalized.unsqueeze(dim=-1)).squeeze(dim=-1)
+        if "phase" in kwargs and kwargs["phase"] == "vis":
+            self.vis["layer_0"] = x
         x = torch.cat([self.layer1(x), x], dim=1)
+        if "phase" in kwargs and kwargs["phase"] == "vis":
+            self.vis["layer_1"] = x
         x = torch.cat([self.layer2(self.layer2_prep(x)), x], dim=1)
+        if "phase" in kwargs and kwargs["phase"] == "vis":
+            self.vis["layer_2"] = x
         x = torch.cat([self.layer3(self.layer3_prep(x)), x], dim=1)
+        if "phase" in kwargs and kwargs["phase"] == "vis":
+            self.vis["layer_3"] = x
         x = torch.cat([self.layer4(self.layer4_prep(x)), x], dim=1)
+        if "phase" in kwargs and kwargs["phase"] == "vis":
+            self.vis["layer_4"] = x
         # interlevel skip connections
         if previous_level4 is not None and self.fm_knn > 0:
             previous_xyz, previous_feat = previous_level4

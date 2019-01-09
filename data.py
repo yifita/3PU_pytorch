@@ -47,7 +47,8 @@ class H5Dataset(data.Dataset):
         return 300*self.batch_size
 
     def add_next_ratio(self):
-        self.curr_scales = self.all_scales[:min(len(self.curr_scales)+1, len(self.all_scales))]
+        self.curr_scales = self.all_scales[:min(
+            len(self.curr_scales)+1, len(self.all_scales))]
 
     def set_combined(self):
         self.__combined = True
@@ -56,8 +57,8 @@ class H5Dataset(data.Dataset):
         self.__combined = False
 
     def set_max_ratio(self, ratio):
-        self.curr_scales = [step_ratio **
-                            r for r in range(1, int(log(ratio, step_ratio))+1)]
+        self.curr_scales = [self.step_ratio **
+                            r for r in range(1, int(log(ratio, self.step_ratio))+1)]
 
     def load_patch_data(self, h5_path, up_ratio, step_ratio, num_point):
         """

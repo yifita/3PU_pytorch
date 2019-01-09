@@ -430,7 +430,7 @@ std::vector<at::Tensor> NmDistanceGradKernelLauncher(int b,int n, at::Tensor xyz
 		AT_DISPATCH_FLOATING_TYPES(xyz1.type(), "NmDistanceGradKernel", [&]() {
 		    NmDistanceGradKernel<scalar_t><<<n_blocks, n_threads>>>(b,m,xyz2.data<scalar_t>(),
 			n,xyz1.data<scalar_t>(),grad_dist2.data<scalar_t>(),idx2.data<int32_t>(),grad_xyz2.data<scalar_t>(),grad_xyz1.data<scalar_t>());
-		  });s
+		  });
 		v = {grad_xyz1, grad_xyz2};
 	}
 

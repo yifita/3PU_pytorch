@@ -1,6 +1,7 @@
 import torch
 import faiss
 import numpy as np
+from threading import Thread
 
 import sampling
 
@@ -188,7 +189,7 @@ def group_knn(k, query, points, unique=True, NCHW=True):
            ), "points size must be greater or equal to query size"
     D = __batch_distance_matrix_general(query_trans, points_trans)
     # prepare duplicate entries
-    points_np = points_trans.cpu().numpy()
+    points_np = points_trans.detach().cpu().numpy()
     indices_duplicated = np.ones(
         (batch_size, 1, num_points), dtype=np.int32)
     for idx in range(batch_size):

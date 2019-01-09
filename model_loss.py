@@ -1,5 +1,4 @@
 import torch
-
 import losses
 
 
@@ -27,7 +26,8 @@ class NmDistanceFunction(torch.autograd.Function):
         d_xyz1 = torch.zeros_like(xyz1)
         d_xyz2 = torch.zeros_like(xyz2)
         gradient1, gradient2 = ctx.needs_input_grad
-        d_input = losses.nmdistance_backward(B, N, xyz1, M, xyz2, d_dist1, idx1, d_dist2, idx2,
+        d_input = losses.nmdistance_backward(B, N, xyz1, M, xyz2,
+                                             d_dist1, idx1, d_dist2, idx2,
                                              gradient1, gradient2,
                                              d_xyz1, d_xyz2)
         if not gradient1:

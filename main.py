@@ -7,6 +7,7 @@ from glob import glob
 from collections import defaultdict
 
 import torch
+import torch.utils.data as data
 
 from net import Net
 from model import Model
@@ -42,7 +43,7 @@ parser.add_argument('--batch_size', type=int, default=16,
 parser.add_argument('--h5_data', help='h5 file for training')
 parser.add_argument('--record_data', help='record file for training')
 parser.add_argument('--test_data', help='test data path')
-parser.add_argument('--learning_rate', type=float, default=0.0005)
+parser.add_argument('--lr_init', type=float, default=0.0005)
 parser.add_argument('--restore_epoch', type=int)
 parser.add_argument('--stage_steps', type=int, default=15000,
                     help="number of updates per curriculums stage")
@@ -87,7 +88,7 @@ NUM_POINT = NUM_POINT or int(NUM_SHAPE_POINT * FLAGS.drop_out)
 
 BATCH_SIZE = FLAGS.batch_size
 MAX_EPOCH = FLAGS.max_epoch
-BASE_LEARNING_RATE = FLAGS.learning_rate
+LR_INIT = FLAGS.lr_init
 JITTER = FLAGS.jitter
 JITTER_MAX = FLAGS.jitter_max
 JITTER_SIGMA = FLAGS.jitter_sigma
@@ -123,7 +124,7 @@ def get_stage_progress(step):
     return stage, progress
 
 
-def train(net):
+def train():
     net.to(DEVICE)
     net.train()
     model = Model(net, "train", FLAGS)
@@ -131,12 +132,13 @@ def train(net):
     if TRAIN_H5 is not None:
         from data import H5Dataset
         dataset = H5Dataset(
+            h5_path=TRAIN_H5,
             num_shape_point=NUM_SHAPE_POINT, num_patch_point=NUM_POINT,
-            batch_size=BATCH_SIZE)
+            batch_size=BATCH_SIZE, up_ratio=UP_RATIO, step_ratio=STEP_RATIO)
         dataloader = data.DataLoader(
             dataset, batch_size=1, pin_memory=True, num_workers=4)
 
-    start_epoch = model.step / len(dataloader)
+    start_epoch = model.step // len(dataloader)
     # whenever progress is changed, we need to update:
     # 1. chamferloss threshold
     # 2. dataset.combined
@@ -153,13 +155,17 @@ def train(net):
         dataset.unset_combined()
 
     dataloader = data.DataLoader(dataset, batch_size=1, pin_memory=True)
+
+    # visualization
+    vis_logger = visdom.Visdom(env=FLAGS.id)
     for epoch in range(start_epoch+1, MAX_EPOCH):
         for i, examples in enumerate(dataloader):
-            input_pc, label_pc, scale, ratio = example
+            input_pc, label_pc, ratio = examples
             ratio = ratio.item()
-            input_pc = input_pc[0].transpose(2, 1)
-            label_pc = label_pc[0].transpose(2, 1)
-            model.set_input(input_pc, scale, ratio, label_pc=label_pc)
+            # 1xBx3xN
+            input_pc = input_pc[0].to(DEVICE)
+            label_pc = label_pc[0].to(DEVICE)
+            model.set_input(input_pc, ratio, label_pc=label_pc)
             # run gradient decent and increment model.step
             model.optimize()
             new_stage, new_progress = get_stage_progress(model.step)
@@ -174,7 +180,29 @@ def train(net):
             # chamfer loss set ignore threshold
             if new_progress > 0.6:
                 model.chamfer_criteria.set_threshold(CD_THRESHOLD)
+            if model.step % 50 == 0:
+                output = model.predicted.transpose(2, 1)[0].cpu()
+                gt = model.gt.transpose(2, 1)[0].cpu()
+                input_pc = input_pc.transpose(2, 1)[0].cpu()
+                vis_logger.scatter(input_pc, win="x{}_input".format(ratio),
+                                   opts=dict(title="x{}_input".format(ratio),
+                                             markersize=2))
+                vis_logger.scatter(output, win="x{}_output".format(ratio),
+                                   opts=dict(title="x{}_output".format(ratio),
+                                             markersize=2))
+                vis_logger.scatter(gt, win="x{}_gt".format(ratio),
+                                   opts=dict(title="x{}_label".format(ratio),
+                                             markersize=2))
+                vis_logger.line(
+                    np.array([model.error_log["cd_loss_x{}".format(ratio)]]),
+                    np.array([model.step]),
+                    update="append",
+                    win="x{}_loss".format(ratio),
+                    opts=dict(title="x{}_loss".format(ratio)))
+
             stage, progress = new_stage, new_progress
+        logger.info("epoch %d: " % epoch +
+                    ", ".join(["{}={}".format(k, v) for k, v in model.error_log.items()]))
 
 
 def pc_prediction(net, input_pc, patch_num_ratio=3):
@@ -234,7 +262,7 @@ def pc_visualization(net, input_pc, patch_num_ratio=3):
 
     for k in tqdm(range(num_patches)):
         patch = patches[:, :, k, :]
-        net.forward(patch.detach(), ratio=UP_RATIO)
+        net.forward(patch.detach(), ratio=UP_RATIO, phase="vis")
         for k in net.vis:
             xyz, feat = net.vis[k]
             vis_xyz[k].append(xyz)
@@ -283,13 +311,22 @@ def vis(result_dir):
             # remove overlapping points and their feat
             xyz, indices = np.unique(xyz, return_index=True, axis=0)
             feat = feat[indices, :]
-            tsne = TSNE(n_components=1, perplexity=20)
+            tsne = TSNE(n_components=1, perplexity=50)
             print("fitting tsne for {}".format(k))
             embedded = tsne.fit_transform(feat)
-            print(embedded.shape)
+            embedded = np.squeeze(embedded)
+            embedded -= np.min(embedded)
             pc_utils.save_ply_property(
                 xyz, embedded, out_path[:-4]+'_{}.ply'.format(k),
                 cmap_name='rainbow')
+            np.save(out_path[:-4]+"_{}".format(k), embedded)
+            # tsne = TSNE(n_components=3, perplexity=50)
+            # print("fitting tsne for {}".format(k))
+            # embedded = tsne.fit_transform(feat)
+            # # normalize as normals
+            # embedded /= np.linalg.norm(embedded, axis=1, keepdims=True)
+            # pc_utils.save_ply(
+            #     xyz, out_path[:-4]+'_{}.ply'.format(k), normals=embedded)
 
 
 def test(result_dir):
@@ -352,7 +389,7 @@ def test(result_dir):
 
 
 if __name__ == "__main__":
-    append_name = []
+    append_name = []  # type: ignore
     if NUM_POINT is None:
         append_name += ["pWhole"]
     else:
@@ -381,3 +418,6 @@ if __name__ == "__main__":
     elif PHASE == "vis":
         assert(CKPT is not None)
         vis(result_path)
+    elif PHASE == "train":
+        import visdom
+        train()

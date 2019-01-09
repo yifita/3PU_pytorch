@@ -2,6 +2,8 @@
 *.o
 *.egg
 output/
+vis_output/
+vis_input/
 sampling/sampling.egg-info/
 sampling/build
 losses/build
