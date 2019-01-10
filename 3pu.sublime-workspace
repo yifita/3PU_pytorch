@@ -532,53 +532,8 @@
 			"file": "net.py",
 			"settings":
 			{
-				"buffer_size": 14877,
+				"buffer_size": 14949,
 				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "vis_output/112/Angel_Statue_aligned_0_level_1.layer_1.npy",
-			"settings":
-			{
-				"buffer_size": 101740,
-				"encoding": "Hexadecimal",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "vis_output/vis_input/ange6_aligned_2_level_1.layer_0.npy",
-			"settings":
-			{
-				"buffer_size": 111960,
-				"encoding": "Hexadecimal",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "vis_output/vis_input/ange6_aligned_2_level_1.layer_1.npy",
-			"settings":
-			{
-				"buffer_size": 111960,
-				"encoding": "Hexadecimal",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "vis_output/vis_input/ange6_aligned_2_level_1.layer_3.npy",
-			"settings":
-			{
-				"buffer_size": 111960,
-				"encoding": "Hexadecimal",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "vis_output/vis_input/ange6_aligned_2_level_1.npy",
-			"settings":
-			{
-				"buffer_size": 111960,
-				"encoding": "Hexadecimal",
 				"line_ending": "Unix"
 			}
 		},
@@ -603,7 +558,7 @@
 			"file": "losses/setup.py",
 			"settings":
 			{
-				"buffer_size": 399,
+				"buffer_size": 406,
 				"line_ending": "Unix"
 			}
 		},
@@ -1199,6 +1154,12 @@
 	],
 	"file_history":
 	[
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/vis_output/112/Angel_Statue_aligned_0_level_1.layer_1.npy",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/vis_output/vis_input/ange6_aligned_2_level_1.layer_0.npy",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/vis_output/vis_input/ange6_aligned_2_level_1.layer_1.npy",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/vis_output/vis_input/ange6_aligned_2_level_1.layer_3.npy",
+		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/vis_output/vis_input/ange6_aligned_2_level_1.npy",
+		"/home/ywang/Downloads/export.csv",
 		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/operations.py",
 		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/sampling/sampling_cuda.cu",
 		"/home/ywang/Documents/points/point-upsampling/3PU_pytorch/dense_interlevelplus.py",
@@ -1320,13 +1281,7 @@
 		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_3D_4x_p400_s1250/result/knn_p625_s625/a72-seated_jew_aligned.ply",
 		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_3D_4x_p400_s1250/result/knn_p1250_s1250/a72-seated_jew_aligned_input.ply",
 		"/mnt/external/points/data/SketchFab/train_mesh/angle_baby_flip_aligned.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_2x16x_k32_n2/result/knn_p50_s50_x16/048000.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/main_curriculum_interleave.py.bk",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/code/tf_ops/CD/tf_nndistance.py",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_4x16x_k32_n2/result/knn_p50_s50_x16/048000.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_042500_x4_initial_gt.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/training_ply/step_042500_x4_initial_input.ply",
-		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/PU_2D_wlop_2x16x/result/knn_p50_s50_x2/048000.ply"
+		"/home/ywang/Documents/points/completion_v0.4/PU-Net/model/spatialEdge_dense_2D_wlop_2x16x_k32_n2/result/knn_p50_s50_x16/048000.ply"
 	],
 	"find":
 	{
@@ -1502,7 +1457,7 @@
 	"groups":
 	[
 		{
-			"selected": 6,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -1534,7 +1489,7 @@
 						"translation.y": 69.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -1543,7 +1498,7 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14877,
+						"buffer_size": 14949,
 						"regions":
 						{
 						},
@@ -1566,153 +1521,11 @@
 						"translation.y": 3405.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "vis_output/112/Angel_Statue_aligned_0_level_1.layer_1.npy",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 101740,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"git_gutter_is_enabled": false,
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "vis_output/vis_input/ange6_aligned_2_level_1.layer_0.npy",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 111960,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"git_gutter_is_enabled": false,
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "vis_output/vis_input/ange6_aligned_2_level_1.layer_1.npy",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 111960,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "vis_output/vis_input/ange6_aligned_2_level_1.layer_3.npy",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 111960,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "vis_output/vis_input/ange6_aligned_2_level_1.npy",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 111960,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 2,
 					"file": "losses/nmdistance.cpp",
 					"semi_transient": false,
 					"settings":
@@ -1740,11 +1553,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 3,
 					"file": "sampling/sampling.cpp",
 					"semi_transient": false,
 					"settings":
@@ -1772,24 +1585,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 4,
 					"file": "losses/setup.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 399,
+						"buffer_size": 406,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								236,
-								236
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1804,11 +1617,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 5,
 					"file": "losses/cuda_utils.h",
 					"semi_transient": false,
 					"settings":
@@ -1834,11 +1647,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 11,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 6,
 					"file": "utils/pc_utils.py",
 					"semi_transient": false,
 					"settings":
@@ -1877,7 +1690,7 @@
 						"translation.y": 70.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 4,
 					"type": "text"
 				}
 			]
