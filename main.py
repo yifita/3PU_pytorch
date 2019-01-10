@@ -23,7 +23,7 @@ parser.add_argument('--gpu', type=int, default=0,
                     help='GPU to use [default: GPU 0]')
 parser.add_argument('--id', default='demo',
                     help="experiment name, prepended to log_dir")
-parser.add_argument('--log_dir', default='../model',
+parser.add_argument('--log_dir', default='./model',
                     help='Log dir [default: log]')
 parser.add_argument('--model', default='model_microscope', help='model name')
 parser.add_argument('--root_dir', default='../',
@@ -201,8 +201,14 @@ def train():
                     opts=dict(title="x{}_loss".format(ratio)))
 
             stage, progress = new_stage, new_progress
+
+        # end of epoch
         logger.info("epoch %d: " % epoch +
                     ", ".join(["{}={}".format(k, v) for k, v in model.error_log.items()]))
+        if epoch % 20 == 0:
+            pytorch_utils.save_network(net, MODEL_DIR,
+                                       "model", epoch_label=str(epoch),
+                                       step=str(model.step))
 
 
 def pc_prediction(net, input_pc, patch_num_ratio=3):
@@ -320,13 +326,6 @@ def vis(result_dir):
                 xyz, embedded, out_path[:-4]+'_{}.ply'.format(k),
                 cmap_name='rainbow')
             np.save(out_path[:-4]+"_{}".format(k), embedded)
-            # tsne = TSNE(n_components=3, perplexity=50)
-            # print("fitting tsne for {}".format(k))
-            # embedded = tsne.fit_transform(feat)
-            # # normalize as normals
-            # embedded /= np.linalg.norm(embedded, axis=1, keepdims=True)
-            # pc_utils.save_ply(
-            #     xyz, out_path[:-4]+'_{}.ply'.format(k), normals=embedded)
 
 
 def test(result_dir):
@@ -339,8 +338,8 @@ def test(result_dir):
     test_files = glob(TEST_DATA, recursive=True)
     for point_path in test_files:
         folder = os.path.basename(os.path.dirname(point_path))
-        path = os.path.join(result_dir, folder,
-                            point_path.split('/')[-1][:-4]+'.ply')
+        out_path = os.path.join(result_dir, folder,
+                                point_path.split('/')[-1][:-4]+'.ply')
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
@@ -365,12 +364,12 @@ def test(result_dir):
             input_pc_list, pred_pc_list = pc_prediction(
                 net, data, patch_num_ratio=PATCH_NUM_RATIO)
 
-        for i, patch_pair in enumerate(zip(input_pc_list, pred_pc_list)):
-            in_patch, out_patch = patch_pair
-            pc_utils.save_ply(in_patch.transpose(2, 1).cpu().numpy()[
-                              0], path[:-4]+'_input_%d.ply' % i)
-            pc_utils.save_ply(out_patch.transpose(2, 1).cpu().numpy()[
-                              0], path[:-4]+'_output_%d.ply' % i)
+        # for i, patch_pair in enumerate(zip(input_pc_list, pred_pc_list)):
+        #     in_patch, out_patch = patch_pair
+        #     pc_utils.save_ply(in_patch.transpose(2, 1).cpu().numpy()[
+        #                       0], path[:-4]+'_input_%d.ply' % i)
+        #     pc_utils.save_ply(out_patch.transpose(2, 1).cpu().numpy()[
+        #                       0], path[:-4]+'_output_%d.ply' % i)
         pred_pc = torch.cat(pred_pc_list, dim=-1)
         input_point = torch.cat(input_pc_list, dim=-1)
         end = time.time()
@@ -384,8 +383,8 @@ def test(result_dir):
         data = data[0, ...]
         pred_pc = pred_pc[0, ...]
 
-        pc_utils.save_ply(data, path[:-4]+'_input.ply')
-        pc_utils.save_ply(pred_pc, path[:-4]+'.ply')
+        pc_utils.save_ply(data, out_path[:-4]+'_input.ply')
+        pc_utils.save_ply(pred_pc, out_path[:-4]+'.ply')
 
 
 if __name__ == "__main__":

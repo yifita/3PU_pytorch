@@ -29,8 +29,10 @@ class Net(torch.nn.Module):
                 if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv1d)):
                     torch.nn.init.xavier_uniform_(m.weight)
                     torch.nn.init.zeros_(m.bias)
-                elif isinstance(m, (torch.nn.InstanceNorm1d, torch.nn.InstanceNorm2d,
-                                    torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+                elif isinstance(m, (torch.nn.InstanceNorm1d,
+                                    torch.nn.InstanceNorm2d,
+                                    torch.nn.BatchNorm1d,
+                                    torch.nn.BatchNorm2d)):
                     torch.nn.init.zeros_(m.bias)
                     torch.nn.init.ones_(m.weight)
 

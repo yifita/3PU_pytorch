@@ -23,7 +23,7 @@ class Model(object):
                                               betas=(0.9, 0.999))
 
         if opt.ckpt is not None:
-            self.step = load_network(opt.ckpt)
+            self.step = load_network(self.net, opt.ckpt)
         else:
             self.step = 0
 
@@ -66,8 +66,9 @@ class Model(object):
         self.step += 1
 
     def compute_chamfer_loss(self, pc, pc_label):
-        loss_chamfer = self.chamfer_criteria(pc_label.transpose(
-            1, 2).contiguous(), pc.transpose(1, 2).contiguous())
+        loss_chamfer = self.chamfer_criteria(
+            pc.transpose(1, 2).contiguous(),
+            pc_label.transpose(1, 2).contiguous())
         weight = log(self.net.max_up_ratio/self.up_ratio, self.net.step_ratio)
         loss_chamfer = loss_chamfer * weight
         prev_err = self.error_log["cd_loss_x{}".format(self.up_ratio)]
