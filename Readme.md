@@ -33,7 +33,7 @@ python main.py --phase test --num_point 312 --num_shape_point 5000 --up_ratio 16
 ## data preparation ##
 Please follow [this](https://github.com/yifita/3PU#data-preparation) instruction to download training and testing data.
 
-We converted the pretrained models described [here](https://github.com/yifita/3PU#pretrained-model) to pytorch. Download them [here][https://polybox.ethz.ch/index.php/s/QsnhBDg17bX8alE]. This file contains two pytorch binaries `final_poisson.pth` and `final_scan.pth`, unzip them 
+We converted the pretrained models described [here](https://github.com/yifita/3PU#pretrained-model) to pytorch. Download them [here](https://polybox.ethz.ch/index.php/s/QsnhBDg17bX8alE). This file contains two pytorch binaries `final_poisson.pth` and `final_scan.pth`, unzip them 
 
 ## compile ##
 
