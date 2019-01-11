@@ -31,7 +31,8 @@ python setup.py install
 python main.py --phase test --num_point 312 --num_shape_point 5000 --up_ratio 16 --test_data  "data/test_data/sketchfab_poisson/poisson_5000/*.xyz" --ckpt final_poisson.pth
 ``` 
 ## data preparation ##
-Please follow [this](https://github.com/yifita/3PU#data-preparation) instruction to download training and testing data.
+We use h5 file for training, download it [here](https://polybox.ethz.ch/index.php/s/o3wzIrKlsngtwsb).
+To create input point clouds from meshes, please follow [this](https://github.com/yifita/3PU#data-preparation) instruction.
 
 We converted the pretrained models described [here](https://github.com/yifita/3PU#pretrained-model) to pytorch. Download them [here](https://polybox.ethz.ch/index.php/s/QsnhBDg17bX8alE). This file contains two pytorch binaries `final_poisson.pth` and `final_scan.pth`, unzip them 
 
@@ -56,7 +57,9 @@ We converted the pretrained models described [here](https://github.com/yifita/3P
 python main.py --phase test --id "poisson" --num_point 312 --num_shape_point 5000 --up_ratio 16 --test_data  "data/test_data/sketchfab_poisson/poisson_5000/*.xyz" --ckpt ./model/final_poisson.pth 
 ```
 ### training ###
-training code uses visdom for visualization. Start visdom and go to `http://localhost:8097` in browser to see monitor training progress.
+Download training data from [here](https://polybox.ethz.ch/index.php/s/o3wzIrKlsngtwsb).
+
+The training code uses visdom for visualization. Start visdom and go to `http://localhost:8097` in browser to see monitor training progress.
 ```bash
 conda activate pytorch-1.0
 python -m visdom.server
