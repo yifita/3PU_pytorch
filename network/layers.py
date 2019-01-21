@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from operations import group_knn
+from .operations import group_knn
 
 
 class DenseEdgeConv(nn.Module):
@@ -13,7 +13,7 @@ class DenseEdgeConv(nn.Module):
         self.k = k
         self.mlps = torch.nn.ModuleList()
         self.mlps.append(torch.nn.Conv2d(
-            2*in_channels, growth_rate, 1, bias=True))
+            2 * in_channels, growth_rate, 1, bias=True))
         for i in range(1, n):
             in_channels += growth_rate
             self.mlps.append(torch.nn.Conv2d(
@@ -30,7 +30,7 @@ class DenseEdgeConv(nn.Module):
         """
         if idx is None:
             # BCN(K+1), BN(K+1)
-            knn_point, idx, _ = group_knn(k+1, x, x, unique=True)
+            knn_point, idx, _ = group_knn(k + 1, x, x, unique=True)
             idx = idx[:, :, 1:]
             knn_point = knn_point[:, :, :, 1:]
 

@@ -9,11 +9,11 @@ from collections import defaultdict
 import torch
 import torch.utils.data as data
 
-from net import Net
-from model import Model
+from network.net import Net
+from network.model import Model
+from network import operations
 from utils import pc_utils, pytorch_utils
 from misc import logger
-import operations
 from data import H5Dataset
 
 parser = argparse.ArgumentParser()
@@ -119,8 +119,8 @@ def get_stage_progress(step):
     """
     return the stage (an integer from 0) and progress (float 0~1)
     """
-    stage = (step + STAGE_STEPS) // (2*STAGE_STEPS)
-    progress = (step + STAGE_STEPS) / (2*STAGE_STEPS) - stage
+    stage = (step + STAGE_STEPS) // (2 * STAGE_STEPS)
+    progress = (step + STAGE_STEPS) / (2 * STAGE_STEPS) - stage
     return stage, progress
 
 
@@ -158,7 +158,7 @@ def train():
 
     # visualization
     vis_logger = visdom.Visdom(env=FLAGS.id)
-    for epoch in range(start_epoch+1, MAX_EPOCH):
+    for epoch in range(start_epoch + 1, MAX_EPOCH):
         for i, examples in enumerate(dataloader):
             input_pc, label_pc, ratio = examples
             ratio = ratio.item()
@@ -298,7 +298,7 @@ def vis(result_dir):
     for point_path in test_files:
         folder = os.path.basename(os.path.dirname(point_path))
         out_path = os.path.join(result_dir, folder,
-                                point_path.split('/')[-1][:-4]+'.ply')
+                                point_path.split('/')[-1][:-4] + '.ply')
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
@@ -317,7 +317,7 @@ def vis(result_dir):
             xyz = xyz_dictlist[k]
             for p in range(1, len(v)):
                 # v shape is 1xNxK
-                v[p] += v[p-1].shape[1]
+                v[p] += v[p - 1].shape[1]
             xyz = torch.cat(xyz, dim=-1)
             xyz = xyz.transpose(2, 1).cpu().numpy()[0, ...]
             nnIdx = torch.cat(v, dim=1)
@@ -365,7 +365,7 @@ def test(result_dir):
     for point_path in test_files:
         folder = os.path.basename(os.path.dirname(point_path))
         out_path = os.path.join(result_dir, folder,
-                                point_path.split('/')[-1][:-4]+'.ply')
+                                point_path.split('/')[-1][:-4] + '.ply')
         data = pc_utils.load(point_path, NUM_SHAPE_POINT)
         data = data[np.newaxis, ...]
         num_shape_point = data.shape[1] * FLAGS.drop_out
@@ -399,9 +399,9 @@ def test(result_dir):
         pred_pc = torch.cat(pred_pc_list, dim=-1)
         input_point = torch.cat(input_pc_list, dim=-1)
         end = time.time()
-        print("total time: ", end-start)
+        print("total time: ", end - start)
         _, pred_pc = operations.furthest_point_sample(
-            pred_pc, int(num_shape_point)*UP_RATIO, NCHW=True)
+            pred_pc, int(num_shape_point) * UP_RATIO, NCHW=True)
         pred_pc = pred_pc.transpose(2, 1).cpu().numpy()
         pred_pc = (pred_pc * furthest_distance) + centroid
         data = data.transpose(2, 1).cpu().numpy()
@@ -409,8 +409,8 @@ def test(result_dir):
         data = data[0, ...]
         pred_pc = pred_pc[0, ...]
 
-        pc_utils.save_ply(data, out_path[:-4]+'_input.ply')
-        pc_utils.save_ply(pred_pc, out_path[:-4]+'.ply')
+        pc_utils.save_ply(data, out_path[:-4] + '_input.ply')
+        pc_utils.save_ply(pred_pc, out_path[:-4] + '.ply')
 
 
 if __name__ == "__main__":

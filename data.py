@@ -10,7 +10,7 @@ import copy
 # from utils import multiproc_dataloader as multiproc
 from misc import logger
 from utils import pc_utils
-from operations import group_knn
+from network.operations import group_knn
 
 
 class H5Dataset(data.Dataset):

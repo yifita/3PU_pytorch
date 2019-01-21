@@ -162,7 +162,7 @@ def __batch_distance_matrix_general(A, B):
     return D
 
 
-def group_knn(k, query, points, unique=True, NCHW=True):
+def group_knn(k, query, points, unique=True, NCHW=True, thread_num=4):
     """
     group batch of points to neighborhoods
     :param
@@ -192,12 +192,28 @@ def group_knn(k, query, points, unique=True, NCHW=True):
     points_np = points_trans.detach().cpu().numpy()
     indices_duplicated = np.ones(
         (batch_size, 1, num_points), dtype=np.int32)
-    for idx in range(batch_size):
-        _, indices = np.unique(points_np[idx], return_index=True, axis=0)
-        indices_duplicated[idx, :, indices] = 0
+
+    # process batches in parallel threads
+    batch_each_worker = np.ceil(batch_size / thread_num).astype(np.int32)
+    threads = []
+
+    def __worker(i):
+        for i in range(i * batch_per_thread, (i + 1) * batch_per_thread):
+            _, indices = np.unique(points_np[i], return_index=True, axis=0)
+            indices_duplicated[i, :, indices] = 0
+
+    for i in range(thread_num):
+        t = threading.Thread(target=__worker, args=(i, ))
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+    # for idx in range(batch_size):
+    #     _, indices = np.unique(points_np[idx], return_index=True, axis=0)
+    #     indices_duplicated[idx, :, indices] = 0
     indices_duplicated = torch.from_numpy(
         indices_duplicated).to(device=D.device, dtype=torch.float32)
-    D += torch.max(D)*indices_duplicated
+    D += torch.max(D) * indices_duplicated
     # (B,M,k)
     # (B,M,k)
     distances, point_indices = torch.topk(-D, k, dim=-1, sorted=True)
@@ -363,8 +379,8 @@ if __name__ == '__main__':
     labels = labels.expand(knn_points.size(0), -1, -1,
                            knn_points.size(3))  # B, 1, M, K
     # B, C, P
-    labels = torch.cat(torch.unbind(labels, dim=-1), dim=-
-                       1).squeeze().detach().cpu().numpy()
+    labels = torch.cat(torch.unbind(labels, dim=-1), dim=
+                       - 1).squeeze().detach().cpu().numpy()
     knn_points = torch.cat(torch.unbind(knn_points, dim=-1),
                            dim=-1).transpose(2, 1).squeeze(0).detach().cpu().numpy()
     save_ply_property(knn_points, labels, "./knn_output.ply", cmap_name='jet')
