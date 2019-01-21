@@ -262,6 +262,7 @@ def pc_visualization(net, input_pc, patch_num_ratio=3):
     print("number of patches: %d" % seeds.shape[-1])
     vis_xyz = defaultdict(list)
     vis_feat = defaultdict(list)
+    vis_nnIdx = defaultdict(list)
 
     patches, _, _ = operations.group_knn(
         NUM_POINT, seeds, input_pc, NCHW=True)
@@ -270,11 +271,15 @@ def pc_visualization(net, input_pc, patch_num_ratio=3):
         patch = patches[:, :, k, :]
         net.forward(patch.detach(), ratio=UP_RATIO, phase="vis")
         for k in net.vis:
-            xyz, feat = net.vis[k]
-            vis_xyz[k].append(xyz)
-            vis_feat[k].append(feat)
-
-    return vis_xyz, vis_feat
+            if "Idx" in k:
+                xyz, nnIdx = net.vis[k]
+                vis_nnIdx[k].append(nnIdx)
+                vis_xyz[k].append(xyz)
+            else:
+                xyz, feat = net.vis[k]
+                vis_xyz[k].append(xyz)
+                vis_feat[k].append(feat)
+    return vis_xyz, vis_feat, vis_nnIdx
 
 
 def vis(result_dir):
@@ -282,6 +287,7 @@ def vis(result_dir):
     upsample a point cloud
     """
     from sklearn.manifold import TSNE
+    from utils.interactive_visualizer import Painter
     # loaded_states = np.load(CKPT).item()
     # net.load_state_dict(loaded_states)
     # pytorch_utils.save_network(net, os.path.dirname(CKPT), "final", "poisson")
@@ -304,28 +310,48 @@ def vis(result_dir):
         start = time.time()
         with torch.no_grad():
             # 1x3xN
-            xyz_level_list, feat_level_list = pc_visualization(
+            xyz_dictlist, feat_dictlist, nnIdx_dictlist = pc_visualization(
                 net, data, patch_num_ratio=PATCH_NUM_RATIO)
 
-        for k in xyz_level_list:
-            xyz = torch.cat(xyz_level_list[k], dim=-1)
-            feat = torch.cat(feat_level_list[k], dim=-1)
-            xyz = xyz.transpose(2, 1).cpu().numpy()
-            xyz = xyz[0, ...]
-            feat = feat.transpose(2, 1).cpu().numpy()
-            feat = feat[0, ...]
-            # remove overlapping points and their feat
-            xyz, indices = np.unique(xyz, return_index=True, axis=0)
-            feat = feat[indices, :]
-            tsne = TSNE(n_components=1, perplexity=50)
-            print("fitting tsne for {}".format(k))
-            embedded = tsne.fit_transform(feat)
-            embedded = np.squeeze(embedded)
-            embedded -= np.min(embedded)
-            pc_utils.save_ply_property(
-                xyz, embedded, out_path[:-4]+'_{}.ply'.format(k),
-                cmap_name='rainbow')
-            np.save(out_path[:-4]+"_{}".format(k), embedded)
+        for k, v in nnIdx_dictlist.items():
+            xyz = xyz_dictlist[k]
+            for p in range(1, len(v)):
+                # v shape is 1xNxK
+                v[p] += v[p-1].shape[1]
+            xyz = torch.cat(xyz, dim=-1)
+            xyz = xyz.transpose(2, 1).cpu().numpy()[0, ...]
+            nnIdx = torch.cat(v, dim=1)
+            nnIdx = nnIdx.cpu().numpy()[0, ...]
+            painter = Painter("NN Feature")
+            painter.nnIdx = nnIdx
+            painter.interactive_3D_plot(xyz, k)
+
+        # for k in xyz_dictlist:
+            # tsne = TSNE(n_components=3, perplexity=50)
+            # for p in range(len(feat_dictlist[k])):
+            #     # xyz = torch.cat(xyz_dictlist[k], dim=-1)
+            #     # feat = torch.cat(feat_dictlist[k], dim=-1)
+            #     xyz = xyz_dictlist[k][p]
+            #     feat = feat_dictlist[k][p]
+
+            #     xyz = xyz.transpose(2, 1).cpu().numpy()
+            #     xyz = xyz[0, ...]
+            #     feat = feat.transpose(2, 1).cpu().numpy()
+            #     feat = feat[0, ...]
+            #     # # remove overlapping points and their feat
+            #     # xyz, indices = np.unique(xyz, return_index=True, axis=0)
+            #     # feat = feat[indices, :]
+            #     print("fitting tsne for {}".format(k))
+            #     embedded = tsne.fit_transform(feat)
+            #     embedded = np.squeeze(embedded)
+            #     embedded -= np.min(embedded, axis=0, keepdims=True)
+            #     embedded /= np.max(embedded, axis=0, keepdims=True)
+            #     pc_utils.save_ply_property(
+            #         xyz, embedded, out_path[:-4]+'_{}_{}.ply'.format(p, k),
+            #         cmap_name='rainbow')
+            #     # pc_utils.save_ply(
+            #     #     xyz, out_path[:-4]+"_{}.ply".format(k), colors=embedded)
+            #     # break
 
 
 def test(result_dir):

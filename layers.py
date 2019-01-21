@@ -57,7 +57,7 @@ class DenseEdgeConv(nn.Module):
                 y = torch.cat([nn.functional.relu_(mlp(y)), y], dim=1)
 
         y, _ = torch.max(y, dim=-1)
-        return y
+        return y, idx
 
 
 class Conv2d(nn.Module):

@@ -167,11 +167,21 @@ class Net(torch.nn.Module):
             # for visualization
             if "phase" in kwargs and kwargs["phase"] == "vis":
                 self.vis = {}
-                self.vis["level_%d" % l] = (old_xyz, old_features)
                 for k, v in self.levels["level_%d" % l].vis.items():
-                    v = torch.cat(
-                        torch.split(v, batch_size, dim=0), dim=2)
-                    self.vis["level_{}.{}".format(l, k)] = (old_xyz, v)
+                    if "Idx" in k:
+                        # v has (B, N, k) change to (1, B*N, k)
+                        # add index offset (B, 1, 1)
+                        offset = torch.arange(0, v.shape[0],
+                                              device=v.device).reshape(-1, 1, 1)
+                        offset *= v.shape[1]
+                        v += offset
+                        v = torch.cat(torch.split(v, batch_size, dim=0), dim=1)
+                        self.vis["level_{}.{}".format(l, k)] = (old_xyz, v)
+                    else:
+                        v = torch.cat(
+                            torch.split(v, batch_size, dim=0), dim=2)
+                        self.vis["level_{}.{}".format(l, k)] = (old_xyz, v)
+                self.vis["level_%d" % l] = (old_xyz, old_features)
 
         if self.training:
             return xyz, gt
@@ -219,12 +229,12 @@ class Level(torch.nn.Module):
         self.fc_layer1 = layers.Conv2d(128, 64, 1, activation="relu")
         self.fc_layer2 = layers.Conv2d(64, 3, 1, activation=None)
 
-    def exponential_distance(self, points, knn_points):
+    def exponential_distance(self, points, knnIdx_points):
         """
         compute knn point distance and interpolation weight for interlevel skip connections
         :param
             points      BxCxN
-            knn_points  BxCxNxK
+            knnIdx_points  BxCxNxK
         :return
             distance    Bx1xNxK
             weight      Bx1xNxK
@@ -232,7 +242,7 @@ class Level(torch.nn.Module):
         if points.dim() == 3:
             points = points.unsqueeze(dim=-1)
         distance = torch.sum(
-            (points - knn_points) ** 2, dim=1, keepdim=True).detach()
+            (points - knnIdx_points) ** 2, dim=1, keepdim=True).detach()
         # mean_P(min_K distance)
         h = torch.mean(torch.min(distance, dim=-1,
                                  keepdim=True)[0], dim=-2, keepdim=True)
@@ -282,18 +292,31 @@ class Level(torch.nn.Module):
         x = self.layer0(xyz_normalized.unsqueeze(dim=-1)).squeeze(dim=-1)
         if "phase" in kwargs and kwargs["phase"] == "vis":
             self.vis["layer_0"] = x
-        x = torch.cat([self.layer1(x), x], dim=1)
+
+        y, idx = self.layer1(x)
+        x = torch.cat([y, x], dim=1)
         if "phase" in kwargs and kwargs["phase"] == "vis":
             self.vis["layer_1"] = x
-        x = torch.cat([self.layer2(self.layer2_prep(x)), x], dim=1)
+            self.vis["nnIdx_layer_0"] = idx
+
+        y, idx = self.layer2(self.layer2_prep(x))
+        x = torch.cat([y, x], dim=1)
         if "phase" in kwargs and kwargs["phase"] == "vis":
             self.vis["layer_2"] = x
-        x = torch.cat([self.layer3(self.layer3_prep(x)), x], dim=1)
+            self.vis["nnIdx_layer_1"] = idx
+
+        y, idx = self.layer3(self.layer3_prep(x))
+        x = torch.cat([y, x], dim=1)
         if "phase" in kwargs and kwargs["phase"] == "vis":
             self.vis["layer_3"] = x
-        x = torch.cat([self.layer4(self.layer4_prep(x)), x], dim=1)
+            self.vis["nnIdx_layer_2"] = idx
+
+        y, idx = self.layer4(self.layer4_prep(x))
+        x = torch.cat([y, x], dim=1)
         if "phase" in kwargs and kwargs["phase"] == "vis":
             self.vis["layer_4"] = x
+            self.vis["nnIdx_layer_3"] = idx
+
         # interlevel skip connections
         if previous_level4 is not None and self.fm_knn > 0:
             previous_xyz, previous_feat = previous_level4
@@ -303,29 +326,29 @@ class Level(torch.nn.Module):
                 # BxCxM
                 previous_feat = previous_feat.expand(batch_size, -1, -1)
             # find closest k point in spatial, BxNxK
-            knn_points, knn_idx, _ = operations.group_knn(
+            knnIdx_points, knnIdx_idx, _ = operations.group_knn(
                 self.fm_knn, xyz, previous_xyz, unique=True, NCHW=True)
             # BxCxNxM
             previous_feat = previous_feat.unsqueeze(
                 2).repeat(1, 1, num_point, 1)
             # BxCxNxK
-            knn_idx = knn_idx.unsqueeze(
+            knnIdx_idx = knnIdx_idx.unsqueeze(
                 1).repeat(1, previous_feat.size(1), 1, 1)
             # BxCxNxK
-            knn_feats = torch.gather(previous_feat, 3, knn_idx)
+            knnIdx_feats = torch.gather(previous_feat, 3, knnIdx_idx)
             # Bx1xNxK
             _, s_average_weight = self.exponential_distance(
-                xyz, knn_points)
+                xyz, knnIdx_points)
             _, f_average_weight = self.exponential_distance(
-                x, knn_feats)
+                x, knnIdx_feats)
             average_weight = s_average_weight * f_average_weight
             average_weight = average_weight / \
                 torch.sum(average_weight+1e-5, dim=-1, keepdim=True)
             # BxCxN
-            knn_feats = torch.sum(
-                average_weight * knn_feats, dim=-1)
+            knnIdx_feats = torch.sum(
+                average_weight * knnIdx_feats, dim=-1)
 
-            x = 0.2 * knn_feats + x
+            x = 0.2 * knnIdx_feats + x
 
         point_features = x
         # code 1x1(or2)xr
