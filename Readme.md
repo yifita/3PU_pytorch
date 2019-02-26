@@ -90,7 +90,8 @@ archivePrefix = {arXiv},
  primaryClass = {cs.CV},
 }
 ```
-
+## acknowledgement ##
+This code based is created cortesy of [erikwijmans](https://github.com/erikwijmans/Pointnet2_PyTorch), [charlesq34](https://github.com/charlesq34/pointnet2) and [yangyan](https://github.com/yangyanli/PointCNN).
 
 ## contact ##
 Yifan Wang: yifan.wang@inf.ethz.ch
