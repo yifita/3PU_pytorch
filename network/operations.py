@@ -162,7 +162,7 @@ def __batch_distance_matrix_general(A, B):
     return D
 
 
-def group_knn(k, query, points, unique=True, NCHW=True, thread_num=4):
+def group_knn(k, query, points, unique=True, NCHW=True):
     """
     group batch of points to neighborhoods
     :param
@@ -185,36 +185,24 @@ def group_knn(k, query, points, unique=True, NCHW=True, thread_num=4):
         query_trans = query.contiguous()
 
     batch_size, num_points, _ = points_trans.size()
-    assert(num_points >= query.size(1)
-           ), "points size must be greater or equal to query size"
+    assert(num_points >= k
+           ), "points size must be greater or equal to k"
+
     D = __batch_distance_matrix_general(query_trans, points_trans)
-    # prepare duplicate entries
-    points_np = points_trans.detach().cpu().numpy()
-    indices_duplicated = np.ones(
-        (batch_size, 1, num_points), dtype=np.int32)
+    if unique:
+        # prepare duplicate entries
+        points_np = points_trans.detach().cpu().numpy()
+        indices_duplicated = np.ones(
+            (batch_size, 1, num_points), dtype=np.int32)
 
-    # process batches in parallel threads
-    batch_each_worker = np.ceil(batch_size / thread_num).astype(np.int32)
-    threads = []
+        for idx in range(batch_size):
+            _, indices = np.unique(points_np[idx], return_index=True, axis=0)
+            indices_duplicated[idx, :, indices] = 0
 
-    def __worker(i):
-        for i in range(i * batch_per_thread, (i + 1) * batch_per_thread):
-            _, indices = np.unique(points_np[i], return_index=True, axis=0)
-            indices_duplicated[i, :, indices] = 0
+        indices_duplicated = torch.from_numpy(
+            indices_duplicated).to(device=D.device, dtype=torch.float32)
+        D += torch.max(D) * indices_duplicated
 
-    for i in range(thread_num):
-        t = threading.Thread(target=__worker, args=(i, ))
-        t.start()
-        threads.append(t)
-    for t in threads:
-        t.join()
-    # for idx in range(batch_size):
-    #     _, indices = np.unique(points_np[idx], return_index=True, axis=0)
-    #     indices_duplicated[idx, :, indices] = 0
-    indices_duplicated = torch.from_numpy(
-        indices_duplicated).to(device=D.device, dtype=torch.float32)
-    D += torch.max(D) * indices_duplicated
-    # (B,M,k)
     # (B,M,k)
     distances, point_indices = torch.topk(-D, k, dim=-1, sorted=True)
     # (B,N,C)->(B,M,N,C), (B,M,k)->(B,M,k,C)
@@ -245,6 +233,7 @@ class GatherFunction(torch.autograd.Function):
         """
         features = features.contiguous()
         idx = idx.contiguous()
+        idx = idx.to(dtype=torch.int32)
 
         B, npoint = idx.size()
         _, C, N = features.size()
@@ -332,29 +321,6 @@ def furthest_point_sample(xyz, npoint, NCHW=True):
     if not NCHW:
         sampled_pc = sampled_pc.transpose(2, 1).contiguous()
     return idx, sampled_pc
-
-
-# class FurthestPoint(torch.nn.Module):
-#     """
-#     Furthest point sampling for Bx3xN points
-#     param:
-#         xyz: Bx3XN or BxNx3 tensor
-#         npoint: number of points
-#     return:
-#         idx: Bxnpoint indices
-#         sampled_xyz: Bx3xnpoint coordinates
-#     """
-#     def forward(self, xyz, npoint):
-#         assert(xyz.dim() == 3), "input for furthest sampling must be a 3D-tensor, but xyz.size() is {}".format(xyz.size())
-#         # need transpose
-#         if xyz.size(2) != 3:
-#             assert(xyz.size(1) == 3), "furthest sampling is implemented for 3D points"
-#             xyz = xyz.transpose(2, 1).contiguous()
-
-#         assert(xyz.size(2) == 3), "furthest sampling is implemented for 3D points"
-#         idx = furthest_point_sample(xyz, npoint)
-#         sampled_pc = gather_points(xyz.transpose(2, 1).contiguous(), idx)
-#         return idx, sampled_pc
 
 
 if __name__ == '__main__':

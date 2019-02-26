@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .operations import group_knn
+from .operations import group_knn, furthest_point_sample, gather_points
 
 
 class DenseEdgeConv(nn.Module):
@@ -43,7 +43,11 @@ class DenseEdgeConv(nn.Module):
 
     def forward(self, x, idx=None):
         """
-        from BxCxN return BxC'xN
+        args:
+            x features (B,C,N)
+        return:
+            y features (B,C',N)
+            idx fknn index (B,C,N,K)
         """
         # [B 2C N K]
         for i, mlp in enumerate(self.mlps):
@@ -58,6 +62,54 @@ class DenseEdgeConv(nn.Module):
 
         y, _ = torch.max(y, dim=-1)
         return y, idx
+
+
+class SampledDenseEdgeConv(DenseEdgeConv):
+    def get_local_graph(self, query, x, k, idx=None):
+        """Construct edge feature [x, NN_i - x] for each point x
+        :param
+            x: (B, C, N)
+            k: int
+            idx: (B, N, k)
+        :return
+            edge features: (B, C, N, k)
+        """
+        if idx is None:
+            # BCN(K+1), BN(K+1)
+            knn_point, idx, _ = group_knn(k + 1, query, x, unique=True)
+            idx = idx[:, :, 1:]
+            knn_point = knn_point[:, :, :, 1:]
+
+        neighbor_center = torch.unsqueeze(query, dim=-1)
+        neighbor_center = neighbor_center.expand_as(knn_point)
+
+        edge_feature = torch.cat(
+            [neighbor_center, knn_point - neighbor_center], dim=1)
+        return edge_feature, idx
+
+    def forward(self, x, nsample, xyz):
+        if nsample == 1:
+            sampled_idx = None
+            sampled_xyz = torch.mean(xyz, dim=-1, keepdim=True)
+            sampled_xyz, sampled_idx, _ = group_knn(1, sampled_xyz, xyz, unique=False)
+            sampled_xyz = sampled_xyz.squeeze(2)
+            sampled_idx = sampled_idx.squeeze(1)
+        else:
+            sampled_idx, sampled_xyz = furthest_point_sample(xyz, nsample, NCHW=True)
+
+        sampled_x = gather_points(x, sampled_idx)
+        for i, mlp in enumerate(self.mlps):
+            if i == 0:
+                y, idx = self.get_local_graph(sampled_x, x, k=self.k)
+                sampled_x = sampled_x.unsqueeze(-1).expand(-1, -1, -1, self.k)
+                y = torch.cat([nn.functional.relu_(mlp(y)), sampled_x], dim=1)
+            elif i == (self.n - 1):
+                y = torch.cat([mlp(y), y], dim=1)
+            else:
+                y = torch.cat([nn.functional.relu_(mlp(y)), y], dim=1)
+
+        y, _ = torch.max(y, dim=-1)
+        return y, sampled_xyz, sampled_idx
 
 
 class Conv2d(nn.Module):

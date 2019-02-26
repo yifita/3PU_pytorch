@@ -222,7 +222,7 @@ def save_ply_with_face(points, faces, filename, colors=None):
 
 def load(filename, count=None):
     if filename[-4:] == ".ply":
-        points = read_ply(filename, count)[:, :3]
+        points = read_ply(filename, count)[:, :3].astype(np.float32)
     else:
         points = np.loadtxt(filename).astype(np.float32)
         if count is not None:

@@ -9,8 +9,8 @@ from collections import defaultdict
 import torch
 import torch.utils.data as data
 
-from network.net import Net
-from network.model import Model
+from network.upsampler import Net
+from model import Model
 from network import operations
 from utils import pc_utils, pytorch_utils
 from misc import logger
@@ -236,7 +236,10 @@ def pc_prediction(net, input_pc, patch_num_ratio=3):
 
     for k in tqdm(range(num_patches)):
         patch = patches[:, :, k, :]
+        patch, centroid, radius = operations.normalize_point_batch(
+            patch, NCHW=True)
         up_point = net.forward(patch.detach(), ratio=UP_RATIO)
+        up_point = up_point * radius + centroid
         input_list.append(patch)
         up_point_list.append(up_point)
 
@@ -325,33 +328,6 @@ def vis(result_dir):
             painter = Painter("NN Feature")
             painter.nnIdx = nnIdx
             painter.interactive_3D_plot(xyz, k)
-
-        # for k in xyz_dictlist:
-            # tsne = TSNE(n_components=3, perplexity=50)
-            # for p in range(len(feat_dictlist[k])):
-            #     # xyz = torch.cat(xyz_dictlist[k], dim=-1)
-            #     # feat = torch.cat(feat_dictlist[k], dim=-1)
-            #     xyz = xyz_dictlist[k][p]
-            #     feat = feat_dictlist[k][p]
-
-            #     xyz = xyz.transpose(2, 1).cpu().numpy()
-            #     xyz = xyz[0, ...]
-            #     feat = feat.transpose(2, 1).cpu().numpy()
-            #     feat = feat[0, ...]
-            #     # # remove overlapping points and their feat
-            #     # xyz, indices = np.unique(xyz, return_index=True, axis=0)
-            #     # feat = feat[indices, :]
-            #     print("fitting tsne for {}".format(k))
-            #     embedded = tsne.fit_transform(feat)
-            #     embedded = np.squeeze(embedded)
-            #     embedded -= np.min(embedded, axis=0, keepdims=True)
-            #     embedded /= np.max(embedded, axis=0, keepdims=True)
-            #     pc_utils.save_ply_property(
-            #         xyz, embedded, out_path[:-4]+'_{}_{}.ply'.format(p, k),
-            #         cmap_name='rainbow')
-            #     # pc_utils.save_ply(
-            #     #     xyz, out_path[:-4]+"_{}.ply".format(k), colors=embedded)
-            #     # break
 
 
 def test(result_dir):

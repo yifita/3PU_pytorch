@@ -2,8 +2,8 @@ import torch
 from math import log, sqrt
 from collections import OrderedDict
 
-import layers
-import operations
+from . import layers
+from . import operations
 
 
 class Net(torch.nn.Module):
@@ -65,7 +65,7 @@ class Net(torch.nn.Module):
             # BxN closest distance
             closest_d = closest_d[:, :, 1]
             # BxN, points whose NN is within a threshold (Bx1)
-            mask = closest_d < 5 * (torch.mean(closest_d, dim=1, keepdim=True))
+            mask = closest_d < (5 * (torch.mean(closest_d, dim=1, keepdim=True)))
             # BxCxN
             mask = torch.unsqueeze(mask, dim=1).expand_as(batch_xyz)
             # filter (B, 3，N')
@@ -73,7 +73,7 @@ class Net(torch.nn.Module):
                 batch_xyz, mask).view(1, 3, -1)
 
             num_point = batch_xyz.size(2)
-            patch_num = int(num_point / k * 3)
+            patch_num = int(num_point / k * 5)
             # Bx3xpatch_num
             _, batch_seed_point = operations.furthest_point_sample(
                 batch_xyz, patch_num)
@@ -84,7 +84,6 @@ class Net(torch.nn.Module):
             k, batch_seed_point, batch_xyz, unique=False, NCHW=True)
         # MBx3xK
         batch_xyz = torch.cat(torch.unbind(batch_xyz, dim=2), dim=0)
-
         # if batch_features is not None:
         #     # BxCxMxN
         #     batch_features = torch.unsqueeze(
@@ -136,11 +135,13 @@ class Net(torch.nn.Module):
                 else:
                     patch_xyz = xyz
 
+                patch_xyz_normalized, centroid, radius = operations.normalize_point_batch(
+                    patch_xyz, NCHW=True)
                 # Bx3x(N*r) and BxCx(N*r)
-                xyz, features, batch_centers, batch_radius = self.levels['level_%d' % l](
-                    patch_xyz, previous_level4=(old_xyz, old_features),
+                xyz, features = self.levels['level_%d' % l](
+                    patch_xyz, patch_xyz_normalized, previous_level4=(old_xyz, old_features),
                     **kwargs)
-
+                xyz = xyz * radius + centroid
                 # cache input xyz for feature propagation
                 old_xyz = patch_xyz
                 old_features = features
@@ -152,15 +153,15 @@ class Net(torch.nn.Module):
                         torch.split(old_xyz, batch_size, dim=0), dim=2)
                     old_features = torch.cat(
                         torch.split(old_features, batch_size, dim=0), dim=2)
-                    num_output_point = num_point * self.step_ratio
+                    num_output_point = num_point * curr_ratio
                     # resample to get sparser points idx [B, P, 1]
                     _, xyz = operations.furthest_point_sample(
                         xyz, num_output_point)
             else:
                 # Bx3x(N*r) and BxCx(N*r)
                 old_xyz = xyz
-                xyz, features, batch_centers, batch_radius = self.levels['level_%d' % l](
-                    xyz, previous_level4=None, **kwargs)
+                xyz, features = self.levels['level_%d' % l](
+                    xyz, xyz, previous_level4=None, **kwargs)
                 old_features = features
 
             # for visualization
@@ -222,8 +223,8 @@ class Level(torch.nn.Module):
             24, growth_rate=growth_rate, n=dense_n, k=knn)
         in_channels = 264  # 204+(24+36) = 264
         self.up_layer = torch.nn.Sequential(OrderedDict([
-            ("up_layer1", layers.Conv2d(in_channels +
-                                        self.code.size(1), 128, 1, activation="relu")),
+            ("up_layer1", layers.Conv2d(in_channels
+                                        + self.code.size(1), 128, 1, activation="relu")),
             ("up_layer2", layers.Conv2d(128, 128, 1, activation="relu")), ]))
         self.fc_layer1 = layers.Conv2d(128, 64, 1, activation="relu")
         self.fc_layer2 = layers.Conv2d(64, 3, 1, activation=None)
@@ -268,22 +269,18 @@ class Level(torch.nn.Module):
                               num_grid_point).view(1, num_grid_point)
         return grid
 
-    def forward(self, xyz, previous_level4=None, **kwargs):
+    def forward(self, xyz, xyz_normalized, previous_level4=None, **kwargs):
         """
         :param
             xyz             Bx3xN input xyz, unnormalized
+            xyz_normalized  Bx3xN input xyz, normalized
             previous_level4 tuple of the xyz and feature of the final feature
                             in the previous level (Bx3xM, BxCxM)
         :return
-            xyz             Bx3xNr output xyz, denormalized
+            xyz             Bx3xNr output xyz, normalized
             l4_features     BxCxN feature of the input points
-            centroid        Bx3x1 center of point clouds
-            radius          Bx1x1 radius of point clouds
         """
-        batch_size, _, num_point = xyz.size()
-        # normalize
-        xyz_normalized, centroid, radius = operations.normalize_point_batch(
-            xyz, NCHW=True)
+        batch_size, _, num_point = xyz_normalized.size()
 
         if "phase" in kwargs and kwargs["phase"] == "vis":
             self.vis = {}
@@ -329,10 +326,10 @@ class Level(torch.nn.Module):
                 self.fm_knn, xyz, previous_xyz, unique=True, NCHW=True)
             # BxCxNxM
             previous_feat = previous_feat.unsqueeze(
-                2).repeat(1, 1, num_point, 1)
+                2).expand(-1, -1, num_point, -1)
             # BxCxNxK
             knnIdx_idx = knnIdx_idx.unsqueeze(
-                1).repeat(1, previous_feat.size(1), 1, 1)
+                1).expand(-1, previous_feat.size(1), -1, -1)
             # BxCxNxK
             knnIdx_feats = torch.gather(previous_feat, 3, knnIdx_idx)
             # Bx1xNxK
@@ -356,7 +353,7 @@ class Level(torch.nn.Module):
         code = self.code.repeat(x.size(0), 1, num_point)
         code = code.to(device=x.device)
         # BxCxN -> BxCxNxr
-        x = x.unsqueeze(-1).repeat(1, 1, 1, ratio)
+        x = x.unsqueeze(-1).expand(-1, -1, -1, ratio)
         # BxCx(N*r)
         x = torch.reshape(
             x, [batch_size, x.size(1), num_point * ratio]).contiguous()
@@ -373,6 +370,143 @@ class Level(torch.nn.Module):
         # add residual
         x += torch.reshape(xyz_normalized.unsqueeze(3).repeat([1, 1, 1, ratio]), [
             batch_size, 3, num_point * ratio])  # B, N, 4, 3
+
+        return x, point_features
+
+
+class AdaptiveLevel(Level):
+    """
+    Upsampling unit with undeterministic target point number
+    """
+
+    def __init__(self, dense_n=3, growth_rate=12, knn=16, fm_knn=5):
+        super(Level, self).__init__()
+        self.dense_n = dense_n
+        self.fm_knn = fm_knn
+        in_channels = 3
+        self.layer0 = layers.Conv2d(3, 24, [1, 1], activation=None)
+        self.layer1 = layers.DenseEdgeConv(
+            24, growth_rate=growth_rate, n=dense_n, k=knn)
+        in_channels = 84  # 24+(24+growth_rate*dense_n) = 24+(24+36) = 84
+        self.layer2_prep = layers.Conv1d(in_channels, 24, 1, activation="relu")
+        self.layer2 = layers.SampledDenseEdgeConv(
+            24, growth_rate=growth_rate, n=dense_n, k=knn)
+        in_channels = 144  # 84+(24+36) = 144
+        self.layer3_prep = layers.Conv1d(in_channels, 24, 1, activation="relu")
+        self.layer3 = layers.SampledDenseEdgeConv(
+            24, growth_rate=growth_rate, n=dense_n, k=knn)
+        in_channels = 204  # 144+(24+36) = 204
+        self.layer4_prep = layers.Conv1d(in_channels, 24, 1, activation="relu")
+        self.layer4 = layers.SampledDenseEdgeConv(
+            24, growth_rate=growth_rate, n=dense_n, k=knn)
+        in_channels = 264  # 204+(24+36) = 264
+        self.up_layer = torch.nn.Sequential(OrderedDict([
+            ("up_layer1", layers.Conv2d(in_channels + 2, 128, 1, activation="relu")),
+            ("up_layer2", layers.Conv2d(128, 128, 1, activation="relu")), ]))
+        self.fc_layer1 = layers.Conv2d(128, 64, 1, activation="relu")
+        self.fc_layer2 = layers.Conv2d(64, 3, 1, activation=None)
+
+    def exponential_distance(self, points, knnIdx_points):
+        """
+        compute knn point distance and interpolation weight for interlevel skip connections
+        :param
+            points      BxCxN
+            knnIdx_points  BxCxNxK
+        :return
+            distance    Bx1xNxK
+            weight      Bx1xNxK
+        """
+        if points.dim() == 3:
+            points = points.unsqueeze(dim=-1)
+        distance = torch.sum(
+            (points - knnIdx_points) ** 2, dim=1, keepdim=True).detach()
+        # mean_P(min_K distance)
+        h = torch.mean(torch.min(distance, dim=-1,
+                                 keepdim=True)[0], dim=-2, keepdim=True) + 1e-5
+        weight = torch.exp(-distance / (h / 2)).detach()
+        return distance, weight
+
+    def gen_grid(self, grid_size):
+        """
+        output [2, grid_size x grid_size]
+        """
+        x = torch.linspace(-1.0, 1.0, grid_size, dtype=torch.float32)
+        # grid_sizexgrid_size
+        x, y = torch.meshgrid(x, x)
+        # 2xgrid_sizexgrid_size
+        grid = torch.stack([x, y], dim=0).view(
+            [2, grid_size * grid_size])  # [2, grid_size, grid_size] -> [2, grid_size*grid_size]
+        return grid
+
+    def interpolate(self, previous_xyz, xyz, previous_feat):
+        # interpolate (B,C,N) to (B,C,N')
+        # find closest k point in spatial, BxNxK
+        batch, _, num_point = xyz.size()
+        knnIdx_points, knnIdx_idx, _ = operations.group_knn(
+            self.fm_knn, xyz, previous_xyz, unique=True, NCHW=True)
+        # BxCxNxM
+        previous_feat = previous_feat.unsqueeze(
+            2).repeat(1, 1, num_point, 1)
+        # BxCxNxK
+        knnIdx_idx = knnIdx_idx.unsqueeze(
+            1).repeat(1, previous_feat.size(1), 1, 1)
+        # BxCxNxK
+        knnIdx_feats = torch.gather(previous_feat, 3, knnIdx_idx)
+        # Bx1xNxK
+        _, s_average_weight = self.exponential_distance(
+            xyz, knnIdx_points)
+
+        average_weight = s_average_weight
+        average_weight = average_weight / \
+            torch.sum(average_weight + 1e-5, dim=-1, keepdim=True)
+        # BxCxN
+        knnIdx_feats = torch.sum(
+            average_weight * knnIdx_feats, dim=-1)
+        return knnIdx_feats
+
+    def forward(self, xyz, target_n_point):
+        # 2xn
+        code = self.gen_grid(round(sqrt(target_n_point)))
+        code = code.expand(xyz.size(0), -1, -1)
+        batch_size, _, num_point = xyz.size()
+
+        # normalize
+        xyz_normalized, centroid, radius = operations.normalize_point_batch(
+            xyz, NCHW=True)
+
+        x = self.layer0(xyz_normalized.unsqueeze(dim=-1)).squeeze(dim=-1)
+
+        y, idx = self.layer1(x)
+        x = torch.cat([y, x], dim=1)
+        # (B,C',nsample), (B,3, nsample), (B,nsample)
+        y, _sampled_xyz, sampled_idx = self.layer2(self.layer2_prep(x), 48, xyz_normalized)
+        x = torch.cat([y, self.interpolate(xyz_normalized, _sampled_xyz, x)], dim=1)
+        sampled_xyz = _sampled_xyz
+
+        y, _sampled_xyz, sampled_idx = self.layer3(self.layer3_prep(x), 16, sampled_xyz)
+        x = torch.cat([y, self.interpolate(sampled_xyz, _sampled_xyz, x)], dim=1)
+        sampled_xyz = _sampled_xyz
+
+        y, _sampled_xyz, sampled_idx = self.layer4(self.layer4_prep(x), 1, sampled_xyz)
+        x = torch.cat([y, self.interpolate(sampled_xyz, _sampled_xyz, x)], dim=1)
+        sampled_xyz = _sampled_xyz
+
+        global_features = x
+
+        code = code.to(device=x.device)
+        # BxCx(N*r)
+        x = x.expand(-1, -1, code.size(-1))
+        # Bx(C+1)x(N*r)
+        x = torch.cat([x, code], dim=1)
+
+        # transform to 3D coordinates
+        # BxCx(N*r)x1
+        x = x.unsqueeze(-1)
+        x = self.up_layer(x)
+        x = self.fc_layer1(x)
+        # Bx3x(N*r)
+        x = self.fc_layer2(x).squeeze(-1)
+
         # normalize back
-        x = (x * radius) + centroid
-        return x, point_features, centroid, radius
+        x = (x * radius.detach()) + centroid.detach()
+        return x, global_features

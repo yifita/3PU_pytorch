@@ -4,7 +4,7 @@ import torch
 from math import log
 from collections import defaultdict
 
-from model_loss import ChamferLoss
+from network.model_loss import ChamferLoss
 from utils.pytorch_utils import load_network, save_network
 
 
@@ -69,7 +69,7 @@ class Model(object):
         loss_chamfer = self.chamfer_criteria(
             pc.transpose(1, 2).contiguous(),
             pc_label.transpose(1, 2).contiguous())
-        weight = log(self.net.max_up_ratio/self.up_ratio, self.net.step_ratio)
+        weight = log(self.net.max_up_ratio / self.up_ratio, self.net.step_ratio)
         loss_chamfer = loss_chamfer * weight
         prev_err = self.error_log["cd_loss_x{}".format(self.up_ratio)]
         self.error_log["cd_loss_x{}".format(
