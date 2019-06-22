@@ -1,5 +1,5 @@
 ## Pytorch 1.0 implementation of paper "Patch-base progressive 3D Point Set Upsampling"
-This code is a re-implementation of the [original tensorflow code](https://github.com/yifita/3PU) in pytorch 1.0 and is subject to potential bugs. 
+This code is a re-implementation of the [original tensorflow code](https://github.com/yifita/3PU) in pytorch 1.0. 
 To reproduce results reported in the paper, please use the tensorflow code.
 
 ## Complete Demo ##
@@ -74,21 +74,14 @@ python main.py --phase train --id "demo_train" --num_point 312 --num_shape_point
 
 ## cite ##
 ```
-@ARTICLE{2018arXiv181111286Y,
-       author = {{Yifan}, Wang and {Wu}, Shihao and {Huang}, Hui and
-        {Cohen-Or}, Daniel and {Sorkine-Hornung}, Olga},
-        title = "{Patch-base progressive 3D Point Set Upsampling}",
-      journal = {ArXiv e-prints},
-     keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer
-        Science - Graphics, Computer Science - Machine Learning},
-         year = 2018,
-        month = Nov,
-          eid = {arXiv:1811.11286},
-        pages = {arXiv:1811.11286},
-archivePrefix = {arXiv},
-       eprint = {1811.11286},
- primaryClass = {cs.CV},
+@InProceedings{Yifan_2019_CVPR,
+author = {Yifan, Wang and Wu, Shihao and Huang, Hui and Cohen-Or, Daniel and Sorkine-Hornung, Olga},
+title = {Patch-Based Progressive 3D Point Set Upsampling},
+booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+month = {June},
+year = {2019}
 }
+
 ```
 ## acknowledgement ##
 This code based is created cortesy of [erikwijmans](https://github.com/erikwijmans/Pointnet2_PyTorch), [charlesq34](https://github.com/charlesq34/pointnet2) and [yangyan](https://github.com/yangyanli/PointCNN).
