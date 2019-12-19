@@ -12,14 +12,13 @@ class NmDistanceFunction(torch.autograd.Function):
         result_i = torch.empty(B, N, dtype=torch.int32, device=xyz1.device)
         result2 = torch.empty(B, M, dtype=xyz2.dtype, device=xyz2.device)
         result2_i = torch.empty(B, M, dtype=torch.int32, device=xyz2.device)
-        result, result_i, result2, result2_i = losses.nmdistance_forward(
-            xyz1, xyz2, result, result_i, result2, result2_i)
+        losses.nmdistance_forward(xyz1, xyz2, result, result2, result_i, result2_i)
         ctx.save_for_backward(xyz1, xyz2, result_i, result2_i)
         ctx.mark_non_differentiable(result_i, result2_i)
         return result, result_i, result2, result2_i
 
     @staticmethod
-    def backward(ctx, d_dist1, d_i1, d_dist2, d_i2):
+    def backward(ctx, graddist1, gradNone1, graddist2, gradNone2):
         B, N = d_dist1.size()
         B, M = d_dist2.size()
         xyz1, xyz2, idx1, idx2 = ctx.saved_variables
