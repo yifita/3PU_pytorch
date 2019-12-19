@@ -13,7 +13,7 @@ class NmDistanceFunction(torch.autograd.Function):
         result2 = torch.empty(B, M, dtype=xyz2.dtype, device=xyz2.device)
         result2_i = torch.empty(B, M, dtype=torch.int32, device=xyz2.device)
         result, result_i, result2, result2_i = losses.nmdistance_forward(
-            B, N, xyz1, M, xyz2, result, result_i, result2, result2_i)
+            xyz1, xyz2, result, result_i, result2, result2_i)
         ctx.save_for_backward(xyz1, xyz2, result_i, result2_i)
         ctx.mark_non_differentiable(result_i, result2_i)
         return result, result_i, result2, result2_i
@@ -23,20 +23,10 @@ class NmDistanceFunction(torch.autograd.Function):
         B, N = d_dist1.size()
         B, M = d_dist2.size()
         xyz1, xyz2, idx1, idx2 = ctx.saved_variables
-        d_xyz1 = torch.zeros_like(xyz1)
-        d_xyz2 = torch.zeros_like(xyz2)
-        gradient1, gradient2 = ctx.needs_input_grad
-        d_input = losses.nmdistance_backward(B, N, xyz1, M, xyz2,
-                                             d_dist1, idx1, d_dist2, idx2,
-                                             gradient1, gradient2,
-                                             d_xyz1, d_xyz2)
-        if not gradient1:
-            return None, d_input[0]
-        if not gradient2:
-            return d_input[0], None
-        else:
-            return d_input[0], d_input[1]
-
+        gradxyz1 = torch.zeros_like(xyz1)
+        gradxyz2 = torch.zeros_like(xyz2)
+        losses.nmdistance_backward(xyz1, xyz2, gradxyz1, gradxyz2, graddist1, graddist2, idx1, idx2)
+        return gradxyz1, gradxyz2
 
 nndistance = NmDistanceFunction.apply
 
